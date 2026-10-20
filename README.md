@@ -68,6 +68,16 @@ Em conformidade com as diretrizes do projeto, não se assume que qualquer perfil
 
 ---
 
+## 🎨 Protótipo de Alta Fidelidade
+
+O projeto **Fato ou Farsa** conta com um protótipo de alta fidelidade desenvolvido no Figma, utilizado para definir e representar visualmente a interface da plataforma antes e durante sua implementação.
+
+O protótipo contempla a organização dos elementos da interface, a hierarquia visual das informações e a experiência de navegação, servindo como referência para o desenvolvimento do frontend e para a construção de uma experiência intuitiva, consistente e alinhada à identidade visual do projeto.
+
+🔗 **[Acessar o protótipo de alta fidelidade no Figma](https://www.figma.com/design/ef3EYTpxwKKMaWZ5XB15yk/TCC?node-id=0-1&t=5HPD54PA8esoQBMd-1)**
+
+---
+
 ## 🛠️ Tecnologias
 
 - **Frontend:** React 19, TypeScript, Tailwind CSS, Lucide Icons.
