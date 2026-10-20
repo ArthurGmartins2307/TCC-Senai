@@ -1,0 +1,6 @@
+{
+  "name": "Fato ou Farsa — Verificação de Conteúdos do Instagram",
+  "description": "Ferramenta analítica para verificação de perfis e conteúdos do Instagram, inspeção de métricas de engajamento e evidências contextuais com IA.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
