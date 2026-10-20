@@ -1,11 +1,11 @@
 /**
- * Fato ou Farsa - Serviço de Comunicação com a API Central
- * Conexão com backend: /api/status, /api/analyze, /api/verify-claims e /api/instagram/*
+ * Fato ou Farsa - Serviço de Comunicação com a API Central (TikTok & IA)
+ * Conexão com rotas do backend: /api/status, /api/analyze, /api/verify-claims e /api/tiktok/*
  */
 
 import {
-  InstagramProfile,
-  InstagramPost,
+  TikTokProfile,
+  TikTokVideo,
   StatisticalSummary,
   AIAnalysisResult,
   FactCheckResult,
@@ -16,8 +16,8 @@ import {
  * Consulta a avaliação forense com o Gemini no backend
  */
 export async function requestAiAnalysis(
-  profile: InstagramProfile,
-  posts: InstagramPost[],
+  profile: TikTokProfile,
+  posts: TikTokVideo[],
   statistics: StatisticalSummary,
   fallbackPreset?: AIAnalysisResult
 ): Promise<AIAnalysisResult> {
@@ -77,37 +77,42 @@ export async function requestFactCheck(
 }
 
 /**
- * Consulta perfil e postagens através da rota oficial de integração
+ * Consulta perfil e vídeos através da rota oficial de integração do TikTok
  */
-export async function fetchInstagramProfileData(
-  username: string,
+export async function fetchTikTokProfileData(
+  usernameOrUrl: string,
+  manualTranscript?: string,
   token?: string
 ): Promise<{
-  source: 'meta_graph_api' | 'sandbox_dataset' | 'manual_input';
+  source: 'tiktok_display_api' | 'tiktok_research_api' | 'sandbox_dataset' | 'manual_input';
   isLiveApi: boolean;
   statusMessage: string;
   retrievedAt: string;
-  profile: InstagramProfile;
-  posts: InstagramPost[];
+  profile: TikTokProfile;
+  posts: TikTokVideo[];
 }> {
-  const res = await fetch('/api/instagram/profile', {
+  const res = await fetch('/api/tiktok/profile', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      username,
+      usernameOrUrl,
+      manualTranscript,
       token,
     }),
   });
 
   if (!res.ok) {
     const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.error || `Erro ao coletar dados do Instagram (${res.status})`);
+    throw new Error(errData.error || `Erro ao coletar dados do TikTok (${res.status})`);
   }
 
   return await res.json();
 }
+
+// Alias de retrocompatibilidade
+export const fetchInstagramProfileData = fetchTikTokProfileData;
 
 /**
  * Consulta o status operacional das integrações de APIs
@@ -121,13 +126,13 @@ export async function fetchSystemStatus(): Promise<SystemStatus> {
 }
 
 /**
- * Testa um token da Meta Graph API
+ * Testa um token da API do TikTok
  */
-export async function testMetaToken(token?: string): Promise<{
+export async function testTikTokToken(token?: string): Promise<{
   success: boolean;
   message: string;
 }> {
-  const res = await fetch('/api/instagram/test', {
+  const res = await fetch('/api/tiktok/test', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -136,3 +141,6 @@ export async function testMetaToken(token?: string): Promise<{
   });
   return await res.json();
 }
+
+// Alias de retrocompatibilidade
+export const testMetaToken = testTikTokToken;

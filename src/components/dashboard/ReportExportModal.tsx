@@ -1,5 +1,5 @@
 /**
- * Fato ou Farsa - Modal de Exportação do Dossiê de Auditoria
+ * Fato ou Farsa - Modal de Exportação do Dossiê de Auditoria (TikTok)
  * Permite download do relatório em JSON, cópia em texto ou impressão em PDF.
  */
 
@@ -33,9 +33,9 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
 
   const handleCopyText = () => {
     const textSummary = `
-DOSSIÊ DE AUDITORIA FORENSE - FATO OU FARSA
+DOSSIÊ DE AUDITORIA FORENSE - FATO OU FARSA (TIKTOK)
 --------------------------------------------------
-Perfil: @${report.profile.username} (${report.profile.fullName})
+Perfil / Conteúdo: @${report.profile.username} (${report.profile.fullName})
 Data da Auditoria: ${report.createdAt}
 Classificação Oficial: ${report.aiAnalysis.classification}
 Grau de Evidência: ${report.aiAnalysis.confidenceLevel} (${report.aiAnalysis.confidenceScore}%)
@@ -44,8 +44,8 @@ SÍNTESE DE EVIDÊNCIAS:
 ${report.aiAnalysis.evidenceSummary}
 
 RESUMO ESTATÍSTICO:
-- Publicações Analisadas: ${report.statistics.totalPostsAnalyzed}
-- Mediana de Visualizações: ${formatNumberBR(report.statistics.medianViews)}
+- Vídeos do TikTok Analisados: ${report.statistics.totalPostsAnalyzed}
+- Mediana de Visualizações (Plays): ${formatNumberBR(report.statistics.medianViews)}
 - Mediana de Curtidas: ${formatNumberBR(report.statistics.medianLikes)}
 - Relação Curtidas/Views: ${formatPercentBR(report.statistics.likesToViewsRatio, 2)}
 - Outliers Detectados: ${report.statistics.outlierCount}
@@ -63,8 +63,8 @@ ${report.aiAnalysis.limitations.map((l) => `• ${l}`).join('\n')}
 PRÓXIMOS PASSOS:
 ${report.aiAnalysis.recommendedNextSteps.map((s) => `• ${s}`).join('\n')}
 --------------------------------------------------
-Gerado pela plataforma Fato ou Farsa (Fato ou Farsa Forensic Engine)
-Princípio: Analise as evidências. Explique a incerteza. Nunca invente uma conclusão.
+Gerado pela plataforma Fato ou Farsa (TikTok Content Verification Engine)
+Princípio: Analise as evidências. Explique a incerteza. Métricas isoladas não provam má-fé.
     `.trim();
 
     navigator.clipboard.writeText(textSummary);
@@ -76,7 +76,7 @@ Princípio: Analise as evidências. Explique a incerteza. Nunca invente uma conc
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(report, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', `dossie-fato-ou-farsa-${report.profile.username}-${Date.now()}.json`);
+    downloadAnchor.setAttribute('download', `dossie-tiktok-fato-ou-farsa-${report.profile.username}-${Date.now()}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -92,19 +92,19 @@ Princípio: Analise as evidências. Explique a incerteza. Nunca invente uma conc
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150"
     >
-      <div className="relative w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl border border-cyan-800/40 bg-slate-900 shadow-2xl shadow-cyan-950/50 overflow-hidden text-slate-100">
+      <div className="relative w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl border border-blue-800/40 bg-slate-900 shadow-2xl shadow-blue-950/50 overflow-hidden text-slate-100">
         {/* Cabeçalho */}
         <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-950/80">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-950/50 text-cyan-400">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-blue-500/30 bg-blue-950/50 text-blue-400">
               <FileText className="h-5 w-5" />
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-100 font-sans">
-                Exportar Dossiê de Auditoria
+                Exportar Dossiê de Auditoria do TikTok
               </h2>
               <p className="text-xs text-slate-400">
-                Relatório forense de @{report.profile.username}
+                Gere cópia em texto estruturado, arquivo JSON ou imprima para registro.
               </p>
             </div>
           </div>
@@ -117,58 +117,62 @@ Princípio: Analise as evidências. Explique a incerteza. Nunca invente uma conc
         </div>
 
         {/* Pré-visualização do Relatório */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4 font-mono text-xs text-slate-300">
-          <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-4 space-y-2">
-            <div className="flex justify-between text-slate-400 border-b border-slate-800 pb-2">
-              <span>ALVO: @{report.profile.username}</span>
-              <span>EMISSÃO: {report.createdAt}</span>
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4 font-mono text-xs text-slate-300 space-y-2 whitespace-pre-wrap max-h-72 overflow-y-auto">
+            <div className="text-emerald-400 font-bold border-b border-slate-800 pb-2">
+              DOSSIÊ DE AUDITORIA FORENSE - FATO OU FARSA
             </div>
-            <div className="text-cyan-400 font-semibold pt-1">
-              STATUS: {report.aiAnalysis.classification.toUpperCase()}
+            <div>
+              <strong>Perfil:</strong> @{report.profile.username} ({report.profile.fullName})
             </div>
-            <p className="text-[11px] text-slate-300 font-sans leading-relaxed">
-              {report.aiAnalysis.evidenceSummary}
-            </p>
-            <div className="pt-2 text-[11px] text-slate-400 flex justify-between">
-              <span>Outliers: {report.statistics.outlierCount}</span>
-              <span>Anomalia: {report.statistics.suspiciousEngagementScore}/100</span>
-              <span>Confiança: {report.aiAnalysis.confidenceLevel}</span>
+            <div>
+              <strong>Classificação:</strong> {report.aiAnalysis.classification}
+            </div>
+            <div>
+              <strong>Grau de Evidência:</strong> {report.aiAnalysis.confidenceLevel} ({report.aiAnalysis.confidenceScore}%)
+            </div>
+            <div className="text-slate-400 pt-1">
+              <strong>Síntese:</strong> {report.aiAnalysis.evidenceSummary}
+            </div>
+            <div className="text-slate-400">
+              <strong>Vídeos Auditados:</strong> {report.statistics.totalPostsAnalyzed} |{' '}
+              <strong>Outliers:</strong> {report.statistics.outlierCount}
             </div>
           </div>
 
-          <p className="text-[11px] font-sans text-slate-400 leading-relaxed">
-            Escolha o formato de saída mais adequado para anexar a relatórios institucionais,
-            pesquisas acadêmicas ou encaminhamento aos órgãos competentes.
-          </p>
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <ShieldCheck className="h-4 w-4 text-emerald-400" />
+            <span>Documento apto para instrução de relatórios e canais de denúncia do TikTok.</span>
+          </div>
         </div>
 
-        {/* Rodapé com Botões de Ação */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 border-t border-slate-800 bg-slate-950/80 px-6 py-4">
+        {/* Ações */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 bg-slate-950/80 px-6 py-4">
+          <button
+            onClick={handleCopyText}
+            className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition-colors cursor-pointer"
+          >
+            {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+            <span>{copied ? 'Copiado!' : 'Copiar Texto'}</span>
+          </button>
+
           <div className="flex items-center gap-2">
             <button
-              onClick={handleCopyText}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-cyan-500/40 hover:text-cyan-300 transition-colors"
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition-colors cursor-pointer"
             >
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-              <span>{copied ? 'Copiado!' : 'Copiar texto'}</span>
+              <Printer className="h-4 w-4" />
+              <span>Imprimir / PDF</span>
             </button>
 
             <button
               onClick={handleDownloadJson}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-cyan-500/40 hover:text-cyan-300 transition-colors"
+              className="flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 px-4 py-2 text-xs font-semibold text-white shadow-md transition-colors cursor-pointer"
             >
-              <Download className="h-3.5 w-3.5" />
+              <Download className="h-4 w-4" />
               <span>Baixar JSON</span>
             </button>
           </div>
-
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-1.5 text-xs font-semibold text-slate-950 shadow-md hover:from-cyan-400 hover:to-blue-500 transition-all"
-          >
-            <Printer className="h-3.5 w-3.5" />
-            <span>Imprimir / Salvar PDF</span>
-          </button>
         </div>
       </div>
     </div>

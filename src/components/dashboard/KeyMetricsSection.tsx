@@ -1,19 +1,18 @@
 /**
- * Fato ou Farsa - Seção B: Métricas Principais (Key Metrics)
+ * Fato ou Farsa - Seção B: Métricas Principais (Key Metrics do TikTok)
  * Cards compactos essenciais:
- * 1. Média de visualizações (com contagem de posts elegíveis)
- * 2. Média de curtidas (com contagem de posts elegíveis)
- * 3. Mediana de visualizações (com contagem de posts elegíveis)
- * 4. Publicações analisadas (total e dados ausentes destacados)
+ * 1. Média de visualizações (com contagem de vídeos elegíveis)
+ * 2. Média de curtidas (com contagem de vídeos elegíveis)
+ * 3. Mediana de visualizações (resistente a outliers algorítmicos)
+ * 4. Vídeos analisados (total e métricas ausentes tratadas sem distorção)
  */
 
 import React from 'react';
-import { Eye, Heart, BarChart2, Layers, Info } from 'lucide-react';
+import { Eye, Heart, BarChart2, Video } from 'lucide-react';
 import { StatisticalSummary } from '../../types';
 import {
   formatNumberBR,
   formatCompactNumberBR,
-  formatPercentBR,
 } from '../../utils/statistics';
 
 interface KeyMetricsSectionProps {
@@ -28,7 +27,7 @@ export const KeyMetricsSection: React.FC<KeyMetricsSectionProps> = ({ stats }) =
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">
-          Métricas Principais Calculadas
+          Métricas Principais Auditadas
         </h3>
         <span className="text-[11px] text-slate-500 dark:text-slate-400">
           Valores ausentes não são tratados como zero
@@ -40,7 +39,7 @@ export const KeyMetricsSection: React.FC<KeyMetricsSectionProps> = ({ stats }) =
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-              Média de visualizações
+              Média de visualizações (Plays)
             </span>
             <Eye className="h-4 w-4 text-[#003876] dark:text-blue-400" />
           </div>
@@ -53,7 +52,7 @@ export const KeyMetricsSection: React.FC<KeyMetricsSectionProps> = ({ stats }) =
             </span>
           </div>
           <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between font-mono">
-            <span>Posts elegíveis:</span>
+            <span>Vídeos elegíveis:</span>
             <span className="font-semibold text-slate-700 dark:text-slate-300">
               {eligibleViewsCount} de {stats.totalPostsAnalyzed}
             </span>
@@ -64,7 +63,7 @@ export const KeyMetricsSection: React.FC<KeyMetricsSectionProps> = ({ stats }) =
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-              Média de curtidas
+              Média de curtidas (Likes)
             </span>
             <Heart className="h-4 w-4 text-[#00A86B] dark:text-emerald-400" />
           </div>
@@ -77,7 +76,7 @@ export const KeyMetricsSection: React.FC<KeyMetricsSectionProps> = ({ stats }) =
             </span>
           </div>
           <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between font-mono">
-            <span>Posts elegíveis:</span>
+            <span>Vídeos elegíveis:</span>
             <span className="font-semibold text-slate-700 dark:text-slate-300">
               {eligibleLikesCount} de {stats.totalPostsAnalyzed}
             </span>
@@ -102,30 +101,30 @@ export const KeyMetricsSection: React.FC<KeyMetricsSectionProps> = ({ stats }) =
           </div>
           <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between font-mono">
             <span>Resistente a outliers:</span>
-            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-              Comportamento típico
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
+              IQR aplicável
             </span>
           </div>
         </div>
 
-        {/* Card 4: Publicações analisadas */}
+        {/* Card 4: Vídeos analisados */}
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-              Publicações analisadas
+              Vídeos do TikTok analisados
             </span>
-            <Layers className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+            <Video className="h-4 w-4 text-purple-600 dark:text-purple-400" />
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold font-mono text-slate-900 dark:text-slate-100">
               {stats.totalPostsAnalyzed}
             </span>
-            <span className="text-xs text-slate-500 font-mono">postagens</span>
+            <span className="text-xs text-slate-500 font-mono">vídeos</span>
           </div>
           <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between font-mono">
-            <span>Sem métricas de views:</span>
+            <span>Métricas indisponíveis:</span>
             <span className="font-semibold text-slate-700 dark:text-slate-300">
-              {stats.postsWithMissingMetricsCount} (fotos/carrosséis)
+              {stats.postsWithMissingMetricsCount} vídeos
             </span>
           </div>
         </div>

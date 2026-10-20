@@ -1,5 +1,5 @@
 /**
- * Fato ou Farsa - Tipos e Interfaces do Sistema
+ * Fato ou Farsa - Tipos e Interfaces do Sistema (Plataforma de Verificação TikTok)
  * Todos os textos e tipos em Português do Brasil (pt-BR)
  */
 
@@ -17,18 +17,18 @@ export interface SceneConfig {
   secondaryColor: string;
   accentColor: string;
   bgColor: string;
-  particleDensity: number; // 50 to 1200
-  networkDensity: number; // 10 to 100
-  particleSpeed: number; // 0.1 to 3.0
-  orbitalSpeed: number; // 0.1 to 3.0
-  cameraDistance: number; // 8 to 35
-  cameraIntensity: number; // 0.1 to 2.0
-  lightingIntensity: number; // 0.2 to 2.5
-  glowIntensity: number; // 0.1 to 2.0
+  particleDensity: number;
+  networkDensity: number;
+  particleSpeed: number;
+  orbitalSpeed: number;
+  cameraDistance: number;
+  cameraIntensity: number;
+  lightingIntensity: number;
+  glowIntensity: number;
   sceneRotation: boolean;
-  animationSpeed: number; // 0.2 to 2.5
-  bgOpacity: number; // 0 to 1
-  interactiveIntensity: number; // 0 to 2
+  animationSpeed: number;
+  bgOpacity: number;
+  interactiveIntensity: number;
   quality: 'low' | 'medium' | 'high';
   sceneComplexity: 'minimal' | 'balanced' | 'rich';
 }
@@ -48,33 +48,43 @@ export interface ThemeConfig {
   visualDensity: 'compact' | 'comfortable' | 'spacious';
 }
 
-export interface InstagramProfile {
+export interface TikTokProfile {
   username: string;
   fullName: string;
   avatarUrl: string;
   isVerified: boolean;
   followersCount: number;
   followingCount: number;
-  postsCount: number;
+  likesReceivedCount?: number; // Total de curtidas recebidas no perfil
+  videosCount: number;
   biography: string;
   category: string;
   profileUrl: string;
   joinedDate?: string;
 }
 
-export type PostFormat = 'reel' | 'image' | 'video' | 'carousel';
+// Compatibilidade de tipo
+export type InstagramProfile = TikTokProfile;
 
-export interface InstagramPost {
+export type VideoFormat = 'video' | 'photo_carousel' | 'livestream_clip';
+export type PostFormat = VideoFormat;
+
+export interface TikTokVideo {
   id: string;
-  shortcode: string;
-  type: PostFormat;
-  caption: string;
+  videoId?: string;
+  shortcode?: string;
+  type: VideoFormat;
+  caption: string; // Legenda do TikTok
+  transcript?: string; // Transcrição de áudio / narração
+  soundTitle?: string; // Título do som / áudio original ou comercial
   timestamp: string;
   formattedDate: string;
-  viewsCount: number | null; // Null se indisponível
-  likesCount: number | null; // Null se indisponível
-  commentsCount: number | null; // Null se indisponível
-  sharesCount: number | null; // Null se indisponível
+  viewsCount: number | null; // Reproduções / Plays
+  likesCount: number | null; // Curtidas / Diggs
+  commentsCount: number | null; // Comentários
+  sharesCount: number | null; // Compartilhamentos
+  savesCount?: number | null; // Salvamentos / Favoritos
+  durationSeconds?: number | null; // Duração do vídeo
   url: string;
   thumbnailUrl: string;
   isOutlier: boolean;
@@ -82,6 +92,9 @@ export interface InstagramPost {
   suspicionFlags: string[];
   evidenceNotes?: string;
 }
+
+// Compatibilidade de tipo
+export type InstagramPost = TikTokVideo;
 
 export interface StatisticalSummary {
   totalPostsAnalyzed: number;
@@ -97,11 +110,11 @@ export interface StatisticalSummary {
   maxLikes: number | null;
   avgComments: number | null;
   medianComments: number | null;
-  likesToViewsRatio: number | null; // Porcentagem
+  likesToViewsRatio: number | null; // Porcentagem de curtidas por visualização
   commentsToLikesRatio: number | null;
   engagementRate: number | null;
   outlierCount: number;
-  outlierRatio: number; // Porcentagem
+  outlierRatio: number;
   suspiciousEngagementScore: number; // 0 a 100
   distributionInsight: string;
   sampleSizeWarning: string | null;
@@ -122,7 +135,7 @@ export interface AIAspectEvaluation {
 
 export interface AIAnalysisResult {
   classification: AIClassification;
-  confidenceScore: number; // 0 a 100
+  confidenceScore: number;
   confidenceLevel: 'Baixa' | 'Média' | 'Alta';
   evidenceSummary: string;
   supportingObservations: string[];
@@ -138,13 +151,15 @@ export interface AIAnalysisResult {
 export interface InvestigationReport {
   id: string;
   createdAt: string;
-  profile: InstagramProfile;
-  posts: InstagramPost[];
+  profile: TikTokProfile;
+  posts: TikTokVideo[];
   statistics: StatisticalSummary;
   aiAnalysis: AIAnalysisResult;
   isDemo: boolean;
-  dataSource?: 'meta_graph_api' | 'sandbox_dataset' | 'manual_input';
+  dataSource?: 'tiktok_display_api' | 'tiktok_research_api' | 'sandbox_dataset' | 'manual_input';
   statusMessage?: string;
+  submittedUrl?: string;
+  submittedTranscript?: string;
 }
 
 export interface VerifiedSource {
@@ -185,6 +200,7 @@ export interface FactCheckResult {
 export interface SystemStatus {
   system: string;
   version: string;
+  platform: 'TikTok';
   environment: string;
   gemini: {
     configured: boolean;
@@ -192,12 +208,13 @@ export interface SystemStatus {
     searchGroundingSupported: boolean;
     mode: 'active' | 'deterministic_fallback';
   };
-  instagram: {
+  tiktok: {
     configured: boolean;
-    appIdConfigured: boolean;
-    mode: 'meta_graph_api' | 'sandbox_curated';
+    clientKeyConfigured: boolean;
+    mode: 'tiktok_display_api' | 'sandbox_curated';
     apiVersion: string;
     permissionsRequired: string[];
+    researchApiEligible: boolean;
   };
   factCheckEngine: {
     status: string;

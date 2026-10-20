@@ -1,11 +1,10 @@
 /**
- * Fato ou Farsa - Modal de Diretrizes Oficiais de Denúncia
- * Seção 15: "Como denunciar este conteúdo"
- * Encaminha para canais oficiais da Meta/Instagram sem automatização ou assédio.
+ * Fato ou Farsa - Modal de Diretrizes Oficiais de Denúncia no TikTok
+ * Encaminha para canais oficiais e legítimos do TikTok sem automatização ou assédio.
  */
 
 import React from 'react';
-import { X, ShieldAlert, ExternalLink, AlertCircle, CheckCircle2, BookOpen } from 'lucide-react';
+import { X, ShieldAlert, ExternalLink, AlertCircle } from 'lucide-react';
 
 interface ReportingGuidanceModalProps {
   isOpen: boolean;
@@ -35,10 +34,10 @@ export const ReportingGuidanceModal: React.FC<ReportingGuidanceModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-100 font-sans">
-                Como denunciar este conteúdo
+                Como denunciar este conteúdo no TikTok
               </h2>
               <p className="text-xs text-slate-400">
-                Diretrizes oficiais e canais legítimos do Instagram / Meta
+                Diretrizes oficiais e canais legítimos da plataforma TikTok
               </p>
             </div>
           </div>
@@ -61,20 +60,20 @@ export const ReportingGuidanceModal: React.FC<ReportingGuidanceModalProps> = ({
             <p className="leading-relaxed text-[11px] text-rose-300/90">
               O <strong>Fato ou Farsa nunca submete denúncias automaticamente</strong> nem estimula
               campanhas de denúncias coordenadas ou assédio moral. Toda denúncia deve refletir o
-              julgamento individual e consciente do cidadão através dos canais homologados.
+              julgamento individual e consciente do cidadão através dos canais homologados pelo TikTok.
             </p>
           </div>
 
-          {/* Passo a Passo no Aplicativo do Instagram */}
+          {/* Passo a Passo no Aplicativo do TikTok */}
           <div className="space-y-3">
             <h3 className="text-xs font-semibold text-slate-200 font-mono uppercase tracking-wider">
-              Passo a Passo Oficial no Aplicativo do Instagram
+              Passo a Passo Oficial no Aplicativo do TikTok
             </h3>
             <div className="space-y-2.5 text-xs text-slate-300">
               <div className="flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/60">
                 <span className="font-mono text-cyan-400 font-bold shrink-0">1.</span>
                 <span>
-                  No aplicativo móvel, acesse a publicação suspeita ou o perfil{' '}
+                  No aplicativo móvel do TikTok, acesse o vídeo suspeito ou o perfil{' '}
                   <strong className="text-slate-100">@{username}</strong>.
                 </span>
               </div>
@@ -82,34 +81,33 @@ export const ReportingGuidanceModal: React.FC<ReportingGuidanceModalProps> = ({
               <div className="flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/60">
                 <span className="font-mono text-cyan-400 font-bold shrink-0">2.</span>
                 <span>
-                  Toque no ícone de três pontos (<strong className="text-slate-100">•••</strong>)
-                  no canto superior direito do post ou perfil.
+                  No vídeo, toque no botão de <strong className="text-slate-100">Compartilhar</strong> (ícone de seta curva no canto direito) ou nos três pontos no perfil.
                 </span>
               </div>
 
               <div className="flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/60">
                 <span className="font-mono text-cyan-400 font-bold shrink-0">3.</span>
                 <span>
-                  Selecione a opção <strong className="text-rose-400">"Denunciar"</strong>.
+                  Toque na opção com ícone de bandeira <strong className="text-rose-400">"Denunciar"</strong>.
                 </span>
               </div>
 
               <div className="flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/60">
                 <span className="font-mono text-cyan-400 font-bold shrink-0">4.</span>
                 <span>
-                  Escolha a categoria mais condizente com a infração identificada:
+                  Selecione o motivo condizente com a infração identificada:
                   <ul className="mt-1.5 space-y-1 text-[11px] text-slate-400 pl-4 list-disc">
                     <li>
-                      <strong className="text-slate-200">"Informações falsas"</strong> → Selecione
-                      Saúde, Política ou Finanças.
+                      <strong className="text-slate-200">"Desinformação"</strong> → Selecione
+                      Saúde (curas milagrosas), Golpes ou Assuntos Sociais/Eleitorais.
                     </li>
                     <li>
-                      <strong className="text-slate-200">"Golpe ou fraude"</strong> → Para promessas
-                      de retorno financeiro indevido ou robôs ilegais de Pix.
+                      <strong className="text-slate-200">"Fraudes e Golpes"</strong> → Para promessas
+                      de lucro fácil, robôs do Pix, pirâmides e estelionato digital.
                     </li>
                     <li>
-                      <strong className="text-slate-200">"Venda de produtos ilegais ou regulamentados"</strong>{' '}
-                      → Para substâncias sem registro sanitário na ANVISA.
+                      <strong className="text-slate-200">"Substâncias e Bens Regulamentados"</strong>{' '}
+                      → Para suplementos clandestinos sem autorização da ANVISA.
                     </li>
                   </ul>
                 </span>
@@ -117,41 +115,41 @@ export const ReportingGuidanceModal: React.FC<ReportingGuidanceModalProps> = ({
             </div>
           </div>
 
-          {/* Links para Recursos Oficiais Verificados da Meta */}
+          {/* Links Oficiais do TikTok */}
           <div className="space-y-3">
             <h3 className="text-xs font-semibold text-slate-200 font-mono uppercase tracking-wider">
-              Recursos e Formulários Oficiais Auditados
+              Canais Oficiais de Segurança do TikTok
             </h3>
             <div className="space-y-2 text-xs">
               <a
-                href="https://help.instagram.com/contact/383679321740945"
+                href="https://www.tiktok.com/community-guidelines/pt-br/integrity-authenticity"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-950/40 hover:border-cyan-500/40 text-slate-300 hover:text-cyan-300 transition-colors"
               >
                 <div>
                   <span className="font-semibold block text-slate-200">
-                    Central de Denúncias e Suporte da Meta
+                    Diretrizes da Comunidade do TikTok — Integridade e Autenticidade
                   </span>
                   <span className="text-[11px] text-slate-400">
-                    Formulário direto de contato para violações de termos de serviço
+                    Políticas oficiais contra desinformação, spam e engajamento falso
                   </span>
                 </div>
                 <ExternalLink className="h-4 w-4 shrink-0 text-cyan-400" />
               </a>
 
               <a
-                href="https://help.instagram.com/519522125107875"
+                href="https://www.tiktok.com/safety/pt-br/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-950/40 hover:border-cyan-500/40 text-slate-300 hover:text-cyan-300 transition-colors"
               >
                 <div>
                   <span className="font-semibold block text-slate-200">
-                    Diretrizes da Comunidade do Instagram
+                    Centro de Segurança do TikTok Brasil
                   </span>
                   <span className="text-[11px] text-slate-400">
-                    Normas detalhadas sobre spam, desinformação e segurança pública
+                    Orientações de proteção e canal direto de transparência
                   </span>
                 </div>
                 <ExternalLink className="h-4 w-4 shrink-0 text-cyan-400" />

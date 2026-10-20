@@ -1,16 +1,16 @@
 /**
- * Fato ou Farsa - Modal de Entrada para Nova Análise de Perfil
- * Seção 10: Profile Input
- * Validação rigorosa e normalização de URLs e @usuários do Instagram.
+ * Fato ou Farsa - Modal de Entrada para Nova Análise no TikTok
+ * Suporte a link de vídeo do TikTok, link de perfil, @usuário, ID de vídeo
+ * e fluxo de fallback para transcrição/legenda manual.
  */
 
 import React, { useState } from 'react';
-import { X, Search, Instagram, AlertCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { X, Search, Video, AlertCircle, ArrowRight, Sparkles, FileText } from 'lucide-react';
 
 interface NewAnalysisModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmitAnalysis: (username: string) => void;
+  onSubmitAnalysis: (usernameOrUrl: string, manualTranscript?: string) => void;
   onSelectDemoScenario: (demoId: string) => void;
 }
 
@@ -21,6 +21,8 @@ export const NewAnalysisModal: React.FC<NewAnalysisModalProps> = ({
   onSelectDemoScenario,
 }) => {
   const [inputValue, setInputValue] = useState('');
+  const [manualTranscript, setManualTranscript] = useState('');
+  const [showTranscriptInput, setShowTranscriptInput] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
@@ -30,41 +32,12 @@ export const NewAnalysisModal: React.FC<NewAnalysisModalProps> = ({
     setErrorMessage(null);
 
     const trimmed = inputValue.trim();
-    if (!trimmed) {
-      setErrorMessage('Por favor, informe um nome de usuário ou link do Instagram.');
+    if (!trimmed && !manualTranscript.trim()) {
+      setErrorMessage('Por favor, informe um link de vídeo do TikTok, @usuário ou insira uma transcrição.');
       return;
     }
 
-    // Normalização: extrair usuário caso seja URL completa do Instagram
-    let username = trimmed;
-    try {
-      if (trimmed.includes('instagram.com/')) {
-        const url = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
-        const parts = url.pathname.split('/').filter(Boolean);
-        if (parts.length > 0 && parts[0] !== 'p' && parts[0] !== 'reel') {
-          username = parts[0];
-        } else {
-          setErrorMessage('Informe o link do perfil principal, não de uma publicação isolada.');
-          return;
-        }
-      }
-    } catch {
-      // Se não for URL válida, tenta tratar como username
-    }
-
-    // Remover arroba inicial se presente
-    username = username.replace(/^@+/, '').replace(/\/$/, '').trim();
-
-    // Validação de formato de usuário do Instagram (letras, números, pontos e underlines, até 30 chars)
-    const validUsernameRegex = /^[a-zA-Z0-9._]{1,30}$/;
-    if (!validUsernameRegex.test(username)) {
-      setErrorMessage(
-        'Nome de usuário inválido. Usuários do Instagram contêm apenas letras, números, pontos ou sublinhados (máximo de 30 caracteres).'
-      );
-      return;
-    }
-
-    onSubmitAnalysis(username);
+    onSubmitAnalysis(trimmed || '@video_tiktok', manualTranscript.trim() || undefined);
     onClose();
   };
 
@@ -74,20 +47,19 @@ export const NewAnalysisModal: React.FC<NewAnalysisModalProps> = ({
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150"
     >
-      <div className="relative w-full max-w-lg flex flex-col rounded-2xl border border-cyan-800/40 bg-slate-900 shadow-2xl shadow-cyan-950/50 overflow-hidden text-slate-100">
-        {/* Cabeçalho Oficial Obrigatório */}
+      <div className="relative w-full max-w-lg flex flex-col rounded-2xl border border-blue-800/40 bg-slate-900 shadow-2xl shadow-blue-950/50 overflow-hidden text-slate-100">
+        {/* Cabeçalho */}
         <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-950/80">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-950/50 text-cyan-400">
-              <Instagram className="h-5 w-5" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-blue-500/30 bg-blue-950/50 text-blue-400">
+              <Video className="h-5 w-5" />
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-100 font-sans">
-                Analisar perfil do Instagram
+                Analisar Conteúdo do TikTok
               </h2>
               <p className="text-xs text-slate-400">
-                Informe um perfil para analisar as métricas disponíveis e investigar possíveis
-                sinais de irregularidade.
+                Informe o link de um vídeo, @usuário ou ID para investigar métricas e alegações.
               </p>
             </div>
           </div>
@@ -99,13 +71,24 @@ export const NewAnalysisModal: React.FC<NewAnalysisModalProps> = ({
           </button>
         </div>
 
-        {/* Formulário */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-slate-200 block">
-              Usuário ou link do Instagram
-            </label>
+        {/* Formulário Principal */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-slate-300">
+                URL do Vídeo, @usuário ou ID do TikTok
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowTranscriptInput(!showTranscriptInput)}
+                className="text-[11px] font-medium text-blue-400 hover:underline cursor-pointer"
+              >
+                {showTranscriptInput ? 'Ocultar transcrição' : '+ Inserir transcrição / áudio'}
+              </button>
+            </div>
+
             <div className="relative">
+              <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={inputValue}
@@ -113,89 +96,115 @@ export const NewAnalysisModal: React.FC<NewAnalysisModalProps> = ({
                   setInputValue(e.target.value);
                   if (errorMessage) setErrorMessage(null);
                 }}
-                placeholder="@exemplo ou https://www.instagram.com/exemplo/"
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 shadow-inner"
+                placeholder="Ex: tiktok.com/@usuario/video/... ou @usuario"
+                className="w-full rounded-xl border border-slate-700 bg-slate-950 pl-10 pr-4 py-2.5 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 autoFocus
               />
             </div>
-            {errorMessage && (
-              <div className="flex items-center gap-2 text-xs text-rose-400 pt-1">
-                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                <span>{errorMessage}</span>
-              </div>
-            )}
           </div>
 
-          <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3.5 text-[11px] text-slate-400 leading-relaxed">
-            <strong>Privacidade & Acesso:</strong> A plataforma consulta exclusivamente informações
-            públicas legitimamente disponibilizadas. Um perfil inacessível ou privado{' '}
-            <strong className="text-slate-200">nunca será rotulado como suspeito</strong>.
-          </div>
-
-          <button
-            type="submit"
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-3 text-xs sm:text-sm font-semibold text-slate-950 shadow-md shadow-cyan-950 hover:from-cyan-400 hover:to-blue-500 transition-all cursor-pointer"
-          >
-            <Search className="h-4 w-4" />
-            <span>Analisar perfil</span>
-          </button>
-
-          {/* Casos Fictícios Rápidos */}
-          <div className="pt-2 border-t border-slate-800">
-            <span className="text-[11px] text-slate-400 block mb-2 font-medium">
-              Ou escolha um caso de demonstração preparado:
-            </span>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => {
-                  onSelectDemoScenario('saude_vital');
-                  onClose();
-                }}
-                className="rounded-lg border border-slate-800 bg-slate-950/60 p-2 text-left text-slate-300 hover:border-cyan-500/40 hover:text-cyan-300 transition-colors"
-              >
-                <span className="font-semibold block truncate">Saúde Vital</span>
-                <span className="text-[10px] text-slate-500">Alegações milagrosas</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  onSelectDemoScenario('tech_investimentos');
-                  onClose();
-                }}
-                className="rounded-lg border border-slate-800 bg-slate-950/60 p-2 text-left text-slate-300 hover:border-cyan-500/40 hover:text-cyan-300 transition-colors"
-              >
-                <span className="font-semibold block truncate">Tech Invest</span>
-                <span className="text-[10px] text-slate-500">Robô de Pix garantido</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  onSelectDemoScenario('dra_mariana');
-                  onClose();
-                }}
-                className="rounded-lg border border-slate-800 bg-slate-950/60 p-2 text-left text-slate-300 hover:border-cyan-500/40 hover:text-cyan-300 transition-colors"
-              >
-                <span className="font-semibold block truncate">Dra. Mariana</span>
-                <span className="text-[10px] text-slate-500">Perfil autêntico/USP</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  onSelectDemoScenario('noticias_urgente');
-                  onClose();
-                }}
-                className="rounded-lg border border-slate-800 bg-slate-950/60 p-2 text-left text-slate-300 hover:border-cyan-500/40 hover:text-cyan-300 transition-colors"
-              >
-                <span className="font-semibold block truncate">Giro Notícias</span>
-                <span className="text-[10px] text-slate-500">Vídeos antigos reciclados</span>
-              </button>
+          {/* Fallback de Transcrição / Legenda Manual */}
+          {showTranscriptInput && (
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+              <span className="text-[11px] font-medium text-slate-300 block">
+                Transcrição do áudio, narração ou texto sobreposto:
+              </span>
+              <textarea
+                value={manualTranscript}
+                onChange={(e) => setManualTranscript(e.target.value)}
+                placeholder="Cole aqui a transcrição ou o que é dito no vídeo para verificação factual direta com IA..."
+                rows={3}
+                className="w-full rounded-lg border border-slate-800 bg-slate-900 p-2.5 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
             </div>
+          )}
+
+          {errorMessage && (
+            <div className="flex items-center gap-1.5 text-xs text-rose-400">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
+          <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-3 text-[11px] text-slate-400 leading-relaxed">
+            <strong>Critério Metodológico:</strong> Devido a diretrizes oficiais de privacidade e limitações de APIs públicas de terceiros, vídeos sem autorização direta são investigados através de metadados fornecidos e checagem factual cruzada.
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg px-4 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 px-5 py-2 text-xs font-semibold text-white shadow-md transition-colors"
+            >
+              <span>Iniciar Análise</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
           </div>
         </form>
+
+        {/* Casos Rápidos de Demonstração */}
+        <div className="border-t border-slate-800 bg-slate-950/60 p-5 space-y-2.5">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+            <span>Ou selecione um caso de demonstração no TikTok:</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <button
+              type="button"
+              onClick={() => {
+                onSelectDemoScenario('saude_vital');
+                onClose();
+              }}
+              className="p-2.5 text-left rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-slate-700 transition-colors"
+            >
+              <span className="font-semibold text-slate-200 block truncate">Saúde Vital</span>
+              <span className="text-[10px] text-slate-400 block truncate">Cura em 48h sem remédios</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                onSelectDemoScenario('tech_investimentos');
+                onClose();
+              }}
+              className="p-2.5 text-left rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-slate-700 transition-colors"
+            >
+              <span className="font-semibold text-slate-200 block truncate">Tech Investimentos</span>
+              <span className="text-[10px] text-slate-400 block truncate">Robô de Pix diário</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                onSelectDemoScenario('dra_mariana');
+                onClose();
+              }}
+              className="p-2.5 text-left rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-slate-700 transition-colors"
+            >
+              <span className="font-semibold text-slate-200 block truncate">Dra. Mariana</span>
+              <span className="text-[10px] text-slate-400 block truncate">Nutrição científica / USP</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                onSelectDemoScenario('noticias_urgente');
+                onClose();
+              }}
+              className="p-2.5 text-left rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-slate-700 transition-colors"
+            >
+              <span className="font-semibold text-slate-200 block truncate">Plantão Brasil</span>
+              <span className="text-[10px] text-slate-400 block truncate">Cortes sensacionalistas</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

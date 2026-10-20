@@ -1,6 +1,6 @@
 /**
- * Fato ou Farsa - Manipulador de Análise com Google Gemini (Server-side)
- * Utiliza o SDK moderno @google/genai com o modelo gemini-3.8-flash
+ * Fato ou Farsa - Manipulador de Análise Forense com Google Gemini (Server-side)
+ * Plataforma TikTok - Utiliza o SDK moderno @google/genai com o modelo gemini-3.8-flash
  */
 
 import { GoogleGenAI, Type } from '@google/genai';
@@ -28,15 +28,15 @@ export async function handleAiAnalysis(payload: {
     });
 
     const systemInstruction = `
-Você é o motor forense de Inteligência Artificial do Fato ou Farsa, uma plataforma de verificação de perfis e conteúdos do Instagram.
-Sua missão é avaliar evidências numéricas, contextuais e semânticas de forma rigorosa, imparcial e em conformidade com as leis do Brasil (Marco Civil, LGPD, ANVISA, CVM).
+Você é o motor forense de Inteligência Artificial do Fato ou Farsa, uma plataforma de verificação de conteúdos e vídeos do TikTok.
+Sua missão é avaliar evidências numéricas, contextuais e semânticas de vídeos curtos de forma rigorosa, imparcial e em conformidade com as leis do Brasil (Marco Civil, LGPD, ANVISA, CVM).
 
 DIRETRIZES CRÍTICAS:
 1. Analise as evidências. Explique a incerteza. NUNCA invente uma conclusão.
 2. Mantenha estrita distinção entre:
-   - Padrões incomuns de engajamento (views altos com poucos likes não provam fraude).
-   - Conteúdo potencialmente enganoso (promessas financeiras surreais, curas milagrosas).
-   - Evidências suficientes para justificar investigação adicional.
+   - Padrões incomuns de engajamento no TikTok (views altos com poucas curtidas refletem entrega algorítmica da FYP ou rejeição, não provam má-fé por si sós).
+   - Conteúdo potencialmente enganoso (promessas de enriquecimento rápido, robôs de Pix, curas milagrosas em 48h, desinformação eleitoral/social).
+   - Evidências suficientes para justificar investigação adicional ou consulta a órgãos oficiais.
 3. Responda ESTRITAMENTE em Português do Brasil (pt-BR).
 4. A classificação DEVE ser OBRIGATORIAMENTE uma destas 5 frases exatas:
    - "Sem indícios relevantes identificados"
@@ -47,26 +47,29 @@ DIRETRIZES CRÍTICAS:
 `;
 
     const userPrompt = `
-Investigue este perfil e postagens do Instagram:
+Investigue este criador e vídeos do TikTok:
 Perfil:
 - Usuário: @${payload.profile?.username} (${payload.profile?.fullName})
 - Bio: "${payload.profile?.biography}"
 - Categoria: ${payload.profile?.category}
-- Seguidores: ${payload.profile?.followersCount} | Verificado: ${payload.profile?.isVerified ? 'Sim' : 'Não'}
+- Seguidores: ${payload.profile?.followersCount} | Verificado no TikTok: ${payload.profile?.isVerified ? 'Sim' : 'Não'}
 
 Resumo Estatístico Calculado:
-- Total de Posts Analisados: ${payload.statistics?.totalPostsAnalyzed}
-- Média de Views: ${payload.statistics?.avgViews ?? 'N/D'} | Mediana de Views: ${payload.statistics?.medianViews ?? 'N/D'}
+- Total de Vídeos Analisados: ${payload.statistics?.totalPostsAnalyzed}
+- Média de Plays (Views): ${payload.statistics?.avgViews ?? 'N/D'} | Mediana: ${payload.statistics?.medianViews ?? 'N/D'}
 - Relação Curtidas / Views: ${payload.statistics?.likesToViewsRatio ? payload.statistics.likesToViewsRatio.toFixed(2) + '%' : 'N/D'}
 - Outliers Detectados: ${payload.statistics?.outlierCount}
 - Pontuação de Anomalia de Engajamento: ${payload.statistics?.suspiciousEngagementScore}/100
 
-Amostra de Postagens:
+Amostra de Vídeos do TikTok:
 ${payload.posts
   .slice(0, 8)
   .map(
     (p, i) =>
-      `[Post ${i + 1}] Tipo: ${p.type} | Views: ${p.viewsCount ?? 'N/D'} | Likes: ${p.likesCount ?? 'N/D'} | Outlier: ${p.isOutlier ? 'SIM' : 'NÃO'}\nLegenda: "${p.caption}"`
+      `[Vídeo ${i + 1}] Formato: ${p.type} | Plays: ${p.viewsCount ?? 'N/D'} | Curtidas: ${p.likesCount ?? 'N/D'} | Outlier: ${p.isOutlier ? 'SIM' : 'NÃO'}
+Legenda: "${p.caption}"
+${p.transcript ? `Transcrição/Áudio: "${p.transcript}"` : ''}
+${p.soundTitle ? `Som: "${p.soundTitle}"` : ''}`
   )
   .join('\n\n')}
 
@@ -102,22 +105,22 @@ Avalie com rigor forense e retorne o JSON estruturado.
             supportingObservations: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
-              description: 'Observações específicas que suportam a avaliação.',
+              description: 'Principais evidências e fatos verificáveis observados.',
             },
             alternativeExplanations: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
-              description: 'Hipóteses benignas ou alternativas para os dados encontrados.',
+              description: 'Hipóteses benignas que justificam o padrão observado.',
             },
             limitations: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
-              description: 'Limitações inerentes à análise de dados públicos.',
+              description: 'O que não pôde ser verificado ou dados indisponíveis.',
             },
             recommendedNextSteps: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
-              description: 'Próximos passos recomendados ao investigador ou usuário.',
+              description: 'Ações recomendadas para o cidadão ou analista.',
             },
             analyzedAspects: {
               type: Type.ARRAY,
@@ -133,7 +136,7 @@ Avalie com rigor forense e retorne o JSON estruturado.
             },
             requiresOfficialReport: {
               type: Type.BOOLEAN,
-              description: 'Se há justificativa sólida para denúncia aos canais oficiais.',
+              description: 'True se houver suspeita grave justificando encaminhamento para denúncia.',
             },
           },
           required: [
@@ -156,7 +159,7 @@ Avalie com rigor forense e retorne o JSON estruturado.
     return {
       ...parsed,
       investigatedAt: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
-      modelUsed: 'gemini-3.8-flash (Fato ou Farsa Forensic Engine)',
+      modelUsed: 'gemini-3.8-flash (TikTok Verification Engine)',
     };
   } catch (err: any) {
     console.error('Erro na chamada ao Gemini API:', err);
@@ -165,7 +168,7 @@ Avalie com rigor forense e retorne o JSON estruturado.
 }
 
 /**
- * Análise determinística de segurança quando o Gemini estiver offline ou indisponível
+ * Análise determinística de segurança quando o Gemini estiver offline ou com quota 429
  */
 function getFallbackDeterministicAnalysis(payload: any, errorDetail?: string) {
   const stats = payload.statistics || {};
@@ -190,34 +193,34 @@ function getFallbackDeterministicAnalysis(payload: any, errorDetail?: string) {
     classification,
     confidenceScore: Math.min(85, Math.max(50, suspiciousScore + 20)),
     confidenceLevel: level,
-    evidenceSummary: `Análise estatística determinística concluída com ${posts.length} postagens avaliadas. ${
+    evidenceSummary: `Análise determinística concluída com ${posts.length} vídeos do TikTok avaliados. ${
       outlierCount > 0
-        ? `Identificados ${outlierCount} conteúdos com desvios expressivos de distribuição métrica.`
-        : 'Distribuição homogênea observada nas publicações analisadas.'
+        ? `Identificados ${outlierCount} vídeos com desvios expressivos entre visualizações e taxa de curtidas.`
+        : 'Distribuição homogênea observada nas métricas dos vídeos auditados.'
     }`,
     supportingObservations: [
-      `Amostragem de ${posts.length} publicações com ${stats.postsWithMetricsCount || 0} métricas válidas.`,
+      `Amostragem de ${posts.length} vídeos do TikTok com ${stats.postsWithMetricsCount || 0} métricas calculadas.`,
       `Taxa de curtidas em relação a reproduções: ${stats.likesToViewsRatio ? stats.likesToViewsRatio.toFixed(2) + '%' : 'Indisponível'}.`,
       outlierCount > 0
-        ? `Presença de ${outlierCount} post(s) classificado(s) como outlier estatístico via IQR.`
+        ? `Presença de ${outlierCount} vídeo(s) classificado(s) como outlier estatístico via IQR.`
         : 'Ausência de anomalias estatísticas severas nas métricas públicas.',
     ],
     alternativeExplanations: [
-      'Picos de visualização podem decorrer de compartilhamento externo em aplicativos de mensagens ou circulação nos algoritmos de descoberta da Meta.',
-      'A ausência de contadores de visualização em carrosséis e fotos é comportamento padrão da interface pública do Instagram.',
+      'Picos de reproduções no TikTok podem decorrer da dinâmica natural da página "Para Você" (FYP) ou compartilhamento viral externo.',
+      'A taxa de curtidas pode variar expressivamente dependendo do nicho e do formato da narrativa.',
     ],
     limitations: [
-      'Análise baseada em dados públicos de amostragem no momento da checagem.',
-      errorDetail ? `Nota técnica: Análise processada localmente (${errorDetail}).` : 'Métricas privadas não auditáveis sem autorização expressa do titular.',
+      'Análise baseada em dados públicos e metadados informados no momento da checagem.',
+      errorDetail ? `Nota técnica: Análise processada localmente (${errorDetail}).` : 'Métricas detalhadas de retenção requerem autorização expressa do titular da conta no TikTok.',
     ],
     recommendedNextSteps: [
-      'Avaliar fontes citadas nas legendas dos conteúdos marcados como anomalia.',
-      'Consultar ferramentas de checagem adicionais antes de qualquer conclusão.',
+      'Avaliar fontes e referências citadas nas legendas dos vídeos marcados como alerta.',
+      'Consultar a base de órgãos reguladores (ANVISA, CVM, CFM) antes de tomar decisões.',
     ],
     analyzedAspects: [
       {
         aspect: 'Integridade Estatística',
-        evaluation: outlierCount > 0 ? 'Padrão com dispersão atípica.' : 'Padrão estável.',
+        evaluation: outlierCount > 0 ? 'Padrão com dispersão atípica de reproduções.' : 'Padrão estável.',
         status: outlierCount > 1 ? 'alerta' : 'normal',
       },
       {

@@ -1,14 +1,14 @@
 /**
- * Fato ou Farsa - Aplicação Principal de Verificação de Conteúdos do Instagram
- * Arquitetura voltada para funcionalidade, simplicidade, usabilidade e rigor analítico.
+ * Fato ou Farsa - Aplicação Principal de Verificação de Conteúdos do TikTok
+ * Arquitetura voltada para funcionalidade, clareza, simplicidade e rigor analítico.
  */
 
 import React, { useState, useEffect } from 'react';
 import {
   ThemeConfig,
   InvestigationReport,
-  InstagramProfile,
-  InstagramPost,
+  TikTokProfile,
+  TikTokVideo,
 } from './types';
 import { calculateStatisticalSummary } from './utils/statistics';
 import { DEMO_DATASETS } from './data/mockProfiles';
@@ -19,6 +19,8 @@ import { DashboardView } from './components/dashboard/DashboardView';
 import { SettingsModal } from './components/settings/SettingsModal';
 import { HistoryDrawer } from './components/dashboard/HistoryDrawer';
 import { NewAnalysisModal } from './components/dashboard/NewAnalysisModal';
+import { DirectFactCheckModal } from './components/factcheck/DirectFactCheckModal';
+import { ApiIntegrationsModal } from './components/integrations/ApiIntegrationsModal';
 
 const DEFAULT_THEME_CONFIG: ThemeConfig = {
   mode: 'light',
@@ -51,11 +53,13 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isNewAnalysisOpen, setIsNewAnalysisOpen] = useState(false);
+  const [isDirectFactCheckOpen, setIsDirectFactCheckOpen] = useState(false);
+  const [isApiModalOpen, setIsApiModalOpen] = useState(false);
 
   // Caso demo ativo
   const [selectedDemoId, setSelectedDemoId] = useState<string>('saude_vital');
 
-  // Relatório ativo
+  // Relatório ativo inicial
   const [activeReport, setActiveReport] = useState<InvestigationReport>(() => {
     const demo = DEMO_DATASETS['saude_vital'];
     const stats = calculateStatisticalSummary(demo.posts);
@@ -67,6 +71,7 @@ export default function App() {
       statistics: stats,
       aiAnalysis: demo.presetAiResult,
       isDemo: true,
+      dataSource: 'sandbox_dataset',
     };
   });
 
@@ -131,6 +136,7 @@ export default function App() {
       statistics: stats,
       aiAnalysis: demo.presetAiResult,
       isDemo: true,
+      dataSource: 'sandbox_dataset',
     };
     setActiveReport(newReport);
     saveToHistory(newReport);
@@ -138,16 +144,31 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Iniciar análise de perfil (digitado pelo usuário)
-  const handlePerformAnalysis = async (input: string) => {
-    const clean = input.replace('@', '').trim().toLowerCase();
+  // Iniciar análise de vídeo ou perfil do TikTok
+  const handlePerformAnalysis = async (input: string, manualTranscript?: string) => {
+    let clean = input.trim();
+
+    // Normalização de URL do TikTok se fornecida
+    if (clean.includes('tiktok.com/')) {
+      try {
+        const url = new URL(clean.startsWith('http') ? clean : `https://${clean}`);
+        const parts = url.pathname.split('/').filter(Boolean);
+        if (parts.length > 0 && parts[0].startsWith('@')) {
+          clean = parts[0];
+        }
+      } catch {
+        // Fallback
+      }
+    }
+
+    clean = clean.replace('@', '').toLowerCase();
 
     // Mapeamento caso coincida com casos de demonstração
     if (clean.includes('saude') || clean.includes('vital')) {
       handleSelectDemoScenario('saude_vital');
       return;
     }
-    if (clean.includes('invest') || clean.includes('tech') || clean.includes('pix')) {
+    if (clean.includes('invest') || clean.includes('tech') || clean.includes('pix') || clean.includes('trader')) {
       handleSelectDemoScenario('tech_investimentos');
       return;
     }
@@ -155,78 +176,95 @@ export default function App() {
       handleSelectDemoScenario('dra_mariana');
       return;
     }
-    if (clean.includes('noticia') || clean.includes('urgente') || clean.includes('fato')) {
+    if (clean.includes('noticia') || clean.includes('urgente') || clean.includes('fato') || clean.includes('plantao')) {
       handleSelectDemoScenario('noticias_urgente');
       return;
     }
 
-    // Perfil arbitrário fornecido pelo usuário
+    // Perfil arbitrário ou vídeo com transcrição fornecido pelo usuário
     setIsLoadingAi(true);
 
-    const generatedProfile: InstagramProfile = {
-      username: clean,
-      fullName: clean.charAt(0).toUpperCase() + clean.slice(1),
+    const generatedProfile: TikTokProfile = {
+      username: clean || 'criador_tiktok',
+      fullName: clean ? clean.charAt(0).toUpperCase() + clean.slice(1) : 'Criador do TikTok',
       avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&auto=format&fit=crop&q=80',
       isVerified: false,
-      followersCount: 52000,
-      followingCount: 380,
-      postsCount: 24,
-      biography: `Perfil público em @${clean}. Análise forense realizada através do Fato ou Farsa.`,
+      followersCount: 68000,
+      followingCount: 140,
+      likesReceivedCount: 520000,
+      videosCount: 32,
+      biography: `Perfil em @${clean || 'criador_tiktok'}. Análise de conformidade e evidências realizada via Fato ou Farsa.`,
       category: 'Criador de Conteúdo',
-      profileUrl: `https://www.instagram.com/${clean}/`,
+      profileUrl: `https://www.tiktok.com/@${clean || 'criador_tiktok'}`,
       joinedDate: '2023',
     };
 
-    const generatedPosts: InstagramPost[] = [
+    const mainCaption = manualTranscript
+      ? `Publicação sob investigação: "${manualTranscript.slice(0, 180)}..."`
+      : `Conteúdo de vídeo publicado no TikTok com potencial de ampla circulação. Verifique as fontes.`;
+
+    const generatedPosts: TikTokVideo[] = [
       {
-        id: `post_${clean}_1`,
-        shortcode: 'C9Z1x8qLo',
-        type: 'reel',
-        caption: `Confira o comunicado oficial e compartilhe com sua rede. Mais detalhes no link da bio.`,
+        id: `video_${clean}_1`,
+        videoId: '7379201948201928374',
+        type: 'video',
+        caption: mainCaption,
+        transcript: manualTranscript || 'Transcrição não informada diretamente. Investigação focada em padrões de métricas e legenda.',
+        soundTitle: 'som original - ' + (clean || 'Criador'),
         timestamp: new Date(Date.now() - 2 * 86400000).toISOString(),
         formattedDate: 'Há 2 dias',
-        viewsCount: 240000,
-        likesCount: 5400,
-        commentsCount: 380,
-        sharesCount: 1200,
-        url: `https://instagram.com/${clean}`,
+        viewsCount: 380000,
+        likesCount: 6200,
+        commentsCount: 540,
+        sharesCount: 1900,
+        savesCount: 1200,
+        durationSeconds: 45,
+        url: `https://www.tiktok.com/@${clean || 'criador_tiktok'}`,
         thumbnailUrl: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=400&auto=format&fit=crop&q=80',
         isOutlier: false,
-        anomalyScore: 18,
-        suspicionFlags: [],
+        anomalyScore: 22,
+        suspicionFlags: manualTranscript ? ['Texto inserido manualmente submetido para validação cruzada'] : [],
       },
       {
-        id: `post_${clean}_2`,
-        shortcode: 'C8Y0a7bJp',
-        type: 'reel',
-        caption: `Método exclusivo revelado pela primeira vez. Não perca esta oportunidade antes que encerrem as inscrições.`,
+        id: `video_${clean}_2`,
+        videoId: '7372910481920192831',
+        type: 'video',
+        caption: 'Revelação inédita que todos deveriam saber antes que removam do ar! #alerta #viral',
+        transcript: 'Método revelado pela primeira vez. Não perca esta oportunidade antes que encerrem as inscrições.',
+        soundTitle: 'Dramatic Suspense - Beat Audio',
         timestamp: new Date(Date.now() - 5 * 86400000).toISOString(),
         formattedDate: 'Há 5 dias',
-        viewsCount: 980000,
-        likesCount: 1200, // Discrepância
-        commentsCount: 920,
-        sharesCount: 2400,
-        url: `https://instagram.com/${clean}`,
+        viewsCount: 1150000,
+        likesCount: 940, // Discrepância
+        commentsCount: 1200,
+        sharesCount: 3400,
+        savesCount: 890,
+        durationSeconds: 38,
+        url: `https://www.tiktok.com/@${clean || 'criador_tiktok'}`,
         thumbnailUrl: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&auto=format&fit=crop&q=80',
         isOutlier: true,
-        anomalyScore: 56,
-        suspicionFlags: ['Discrepância acentuada entre reproduções e taxa de curtidas'],
+        anomalyScore: 68,
+        suspicionFlags: ['Discrepância acentuada entre reproduções (1,1M) e taxa de curtidas (0,08%)'],
       },
       {
-        id: `post_${clean}_3`,
-        shortcode: 'C7X9c6dLa',
-        type: 'carousel',
-        caption: `3 dicas essenciais para o seu dia a dia. Deslize para o lado para conferir as lâminas.`,
-        timestamp: new Date(Date.now() - 12 * 86400000).toISOString(),
-        formattedDate: 'Há 12 dias',
-        viewsCount: null, // Contador não exposto
-        likesCount: 1840,
-        commentsCount: 75,
-        sharesCount: null,
-        url: `https://instagram.com/${clean}`,
+        id: `video_${clean}_3`,
+        videoId: '7369182736451928372',
+        type: 'video',
+        caption: 'Rotina e bastidores do processo diário. #vlog #diaadia',
+        transcript: 'Acompanhe comigo um pouco do fluxo de trabalho e dicas práticas.',
+        soundTitle: 'Acoustic Chill Vibes',
+        timestamp: new Date(Date.now() - 11 * 86400000).toISOString(),
+        formattedDate: 'Há 11 dias',
+        viewsCount: 210000,
+        likesCount: 16500,
+        commentsCount: 380,
+        sharesCount: 720,
+        savesCount: 1400,
+        durationSeconds: 32,
+        url: `https://www.tiktok.com/@${clean || 'criador_tiktok'}`,
         thumbnailUrl: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400&auto=format&fit=crop&q=80',
         isOutlier: false,
-        anomalyScore: 6,
+        anomalyScore: 8,
         suspicionFlags: [],
       },
     ];
@@ -243,6 +281,8 @@ export default function App() {
         statistics: stats,
         aiAnalysis: aiResult,
         isDemo: true,
+        dataSource: manualTranscript ? 'manual_input' : 'sandbox_dataset',
+        submittedTranscript: manualTranscript,
       };
       setActiveReport(newReport);
       saveToHistory(newReport);
@@ -280,7 +320,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors">
-      {/* Barra de Navegação Compacta e Funcional */}
+      {/* Barra de Navegação Compacta e Funcional Conforme Seção 4 */}
       <AppNavbar
         currentView={currentView}
         onNavigateHome={() => {
@@ -288,6 +328,8 @@ export default function App() {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         onOpenNewAnalysis={() => setIsNewAnalysisOpen(true)}
+        onOpenDirectFactCheck={() => setIsDirectFactCheckOpen(true)}
+        onOpenApiModal={() => setIsApiModalOpen(true)}
         onOpenHistory={() => setIsHistoryOpen(true)}
         historyCount={historyReports.length}
         themeConfig={themeConfig}
@@ -307,6 +349,7 @@ export default function App() {
             onStartAnalysis={handlePerformAnalysis}
             onSelectDemo={handleSelectDemoScenario}
             isLoading={isLoadingAi}
+            onOpenDirectFactCheck={() => setIsDirectFactCheckOpen(true)}
           />
         ) : (
           <DashboardView
@@ -341,8 +384,8 @@ export default function App() {
       {/* Rodapé Conciso da Aplicação */}
       <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-4 px-4 sm:px-6 text-center text-xs text-slate-500 dark:text-slate-400">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Fato ou Farsa — Ferramenta de Análise e Verificação de Conteúdos</span>
-          <span className="text-[11px]">Em conformidade com a LGPD (Lei 13.709/2018) e termos públicos do Instagram</span>
+          <span>Fato ou Farsa — Plataforma de Verificação de Conteúdos do TikTok</span>
+          <span className="text-[11px]">Em conformidade com a LGPD (Lei 13.709/2018) e termos oficiais do TikTok</span>
         </div>
       </footer>
 
@@ -388,6 +431,16 @@ export default function App() {
         onClose={() => setIsNewAnalysisOpen(false)}
         onSubmitAnalysis={handlePerformAnalysis}
         onSelectDemoScenario={handleSelectDemoScenario}
+      />
+
+      <DirectFactCheckModal
+        isOpen={isDirectFactCheckOpen}
+        onClose={() => setIsDirectFactCheckOpen(false)}
+      />
+
+      <ApiIntegrationsModal
+        isOpen={isApiModalOpen}
+        onClose={() => setIsApiModalOpen(false)}
       />
     </div>
   );

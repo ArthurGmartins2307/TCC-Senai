@@ -1,5 +1,9 @@
 /**
  * Fato ou Farsa - Barra de Navegação Compacta e Funcional
+ * Conforme Seção 4:
+ * - Apenas o ícone/logotipo oficial é exibido no cabeçalho
+ * - Nenhum rótulo de texto posicionado imediatamente ao lado do ícone
+ * - Clicável para retornar à página inicial com acessibilidade
  */
 
 import React from 'react';
@@ -13,7 +17,7 @@ import {
   Server,
   FileCheck2,
 } from 'lucide-react';
-import { Logo } from '../brand/Logo';
+import { LogoIcon } from '../brand/Logo';
 import { ThemeConfig } from '../../types';
 
 interface AppNavbarProps {
@@ -44,13 +48,24 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
   return (
     <header className="sticky top-0 z-30 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-sm transition-colors">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        {/* Identidade / Logotipo Oficial */}
+        {/* Identidade Visual: Apenas o ícone oficial no cabeçalho conforme Seção 4 */}
         <div
           onClick={onNavigateHome}
-          className="cursor-pointer group flex items-center gap-3"
-          title="Fato ou Farsa — Início"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              onNavigateHome();
+            }
+          }}
+          tabIndex={0}
+          role="button"
+          aria-label="Fato ou Farsa — Página Inicial"
+          className="cursor-pointer group flex items-center focus:outline-none focus:ring-2 focus:ring-[#003876] dark:focus:ring-blue-500 rounded-lg p-0.5"
+          title="Fato ou Farsa — Ir para o início"
         >
-          <Logo iconSize={32} />
+          <LogoIcon
+            size={38}
+            className="group-hover:scale-105 transition-transform drop-shadow-sm"
+          />
         </div>
 
         {/* Ações da Barra Superior */}
@@ -59,13 +74,13 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
           <button
             onClick={onOpenDirectFactCheck}
             className="flex items-center gap-1.5 rounded-lg border border-emerald-300 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-950/40 px-3 py-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors"
-            title="Verificar alegação, legenda de Reel ou notícia diretamente"
+            title="Verificar alegação, transcrição ou legenda de vídeo do TikTok"
           >
             <FileCheck2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span className="hidden sm:inline">Verificar Fato</span>
+            <span className="hidden sm:inline">Checar Alegação</span>
           </button>
 
-          {/* Botão Principal: Analisar Perfil */}
+          {/* Botão Principal: Analisar Perfil / Vídeo */}
           {currentView === 'dashboard' ? (
             <button
               onClick={onNavigateHome}
@@ -80,7 +95,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
               className="flex items-center gap-1.5 rounded-lg bg-[#003876] dark:bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-[#002D62] dark:hover:bg-blue-500 transition-colors"
             >
               <Search className="h-3.5 w-3.5" />
-              <span>Analisar perfil</span>
+              <span>Analisar TikTok</span>
             </button>
           )}
 
@@ -88,7 +103,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
           <button
             onClick={onOpenApiModal}
             className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
-            title="Configurações e documentação das APIs (Meta, Gemini, Fatos)"
+            title="Status e documentação das APIs oficiais (TikTok Display API, Gemini AI, Base Forense)"
           >
             <Server className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
             <span className="hidden md:inline">APIs</span>
@@ -99,7 +114,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({
           <button
             onClick={onOpenHistory}
             className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
-            title="Histórico de análises"
+            title="Histórico de auditorias realizadas"
           >
             <History className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Histórico</span>

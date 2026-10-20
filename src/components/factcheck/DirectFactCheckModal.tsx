@@ -1,6 +1,6 @@
 /**
- * Fato ou Farsa - Modal de Verificação Direta de Conteúdo / Legenda / Post
- * Permite colar qualquer link, texto, transcrição de Reel ou afirmação para checagem imediata
+ * Fato ou Farsa - Modal de Verificação Direta de Conteúdo / Legenda / Vídeo do TikTok
+ * Permite colar qualquer link, legenda, transcrição de vídeo ou afirmação para checagem imediata
  */
 
 import React, { useState } from 'react';
@@ -15,6 +15,7 @@ import {
   HeartPulse,
   DollarSign,
   Globe,
+  Video,
 } from 'lucide-react';
 import { FactCheckModal } from './FactCheckModal';
 
@@ -26,24 +27,28 @@ interface DirectFactCheckModalProps {
 export function DirectFactCheckModal({ isOpen, onClose }: DirectFactCheckModalProps) {
   const [inputText, setInputText] = useState('');
   const [topic, setTopic] = useState<'Saúde' | 'Finanças' | 'Notícias' | 'Ciência' | 'Geral'>('Saúde');
-  const [isVerifying, setIsVerifying] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
 
   const sampleCases = [
     {
-      title: 'Diabetes em 48h (Saúde)',
-      text: 'Erva da Amazônia destrói a glicose alta no sangue em 48 horas e cura o diabetes tipo 2. A indústria farmacêutica quer censurar esse vídeo.',
+      title: 'Diabetes em 48h (Saúde no TikTok)',
+      text: 'Erva da Amazônia destrói a glicose alta no sangue em 48 horas e cura o diabetes tipo 2. A indústria farmacêutica quer censurar esse vídeo do TikTok. Comente eu quero!',
       cat: 'Saúde' as const,
     },
     {
-      title: 'Robô com Lucro 100% (Finanças)',
-      text: 'Novo algoritmo de inteligência artificial gera lucro garantido de 100% ao dia sem risco. Vagas limitadas no link da bio.',
+      title: 'Robô do Pix / Lucro Diário (Finanças)',
+      text: 'Novo algoritmo de inteligência artificial gera de R$ 500 a R$ 2.000 por dia no piloto automático. Saque imediato pelo celular no link da bio.',
       cat: 'Finanças' as const,
     },
     {
       title: 'Chá para Artérias (Saúde)',
-      text: 'Chá caseiro da vovó limpa 90% das artérias do coração e dispensa cirurgia cardíaca ou remédios químicos.',
+      text: 'Chá caseiro da vovó limpa 90% das artérias entupidas em uma semana e dispensa cateterismo ou cirurgia cardíaca. Salve este vídeo!',
       cat: 'Saúde' as const,
+    },
+    {
+      title: 'Boato de Confinamento (Notícias)',
+      text: 'Governo decreta confinamento nacional a partir de amanhã e bloqueio de contas poupança. Veja o pronunciamento urgente antes que apaguem!',
+      cat: 'Notícias' as const,
     },
   ];
 
@@ -72,10 +77,10 @@ export function DirectFactCheckModal({ isOpen, onClose }: DirectFactCheckModalPr
               </div>
               <div>
                 <h2 id="direct-factcheck-title" className="text-xl font-bold text-slate-900 dark:text-white">
-                  Verificar Conteúdo ou Alegação
+                  Checar Alegação de Vídeo do TikTok
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Cole uma legenda de Reel, transcrição de vídeo ou alegação para checagem imediata
+                  Cole uma legenda de vídeo do TikTok, transcrição de áudio ou afirmação para checagem imediata
                 </p>
               </div>
             </div>
@@ -99,54 +104,53 @@ export function DirectFactCheckModal({ isOpen, onClose }: DirectFactCheckModalPr
                 <button
                   type="button"
                   onClick={() => setTopic('Saúde')}
-                  className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
+                  className={`p-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
                     topic === 'Saúde'
-                      ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-800 dark:text-emerald-300 shadow-sm'
+                      ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800'
                       : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <HeartPulse className="w-3.5 h-3.5" />
-                  Saúde / Remédios
+                  <HeartPulse className="w-4 h-4 text-rose-500" />
+                  Saúde & Remédios
                 </button>
                 <button
                   type="button"
                   onClick={() => setTopic('Finanças')}
-                  className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
+                  className={`p-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
                     topic === 'Finanças'
-                      ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-500 text-amber-800 dark:text-amber-300 shadow-sm'
+                      ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800'
                       : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <DollarSign className="w-3.5 h-3.5" />
-                  Finanças / PIX
+                  <DollarSign className="w-4 h-4 text-amber-500" />
+                  Finanças & Cripto
                 </button>
                 <button
                   type="button"
                   onClick={() => setTopic('Notícias')}
-                  className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
+                  className={`p-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
                     topic === 'Notícias'
-                      ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-500 text-blue-800 dark:text-blue-300 shadow-sm'
+                      ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-800'
                       : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <Globe className="w-3.5 h-3.5" />
-                  Notícias / Geral
+                  <Globe className="w-4 h-4 text-blue-500" />
+                  Notícias & Política
                 </button>
               </div>
             </div>
 
-            {/* Texto */}
+            {/* Input de texto */}
             <div>
-              <label htmlFor="caption-input" className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                Texto da Publicação ou Afirmação
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                Texto da Legenda ou Transcrição do TikTok
               </label>
               <textarea
-                id="caption-input"
-                rows={4}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="Exemplo: '🚨 URGENTE: Erva da Amazônia que cura o diabetes tipo 2 em 48 horas sem remédios...'"
-                className="w-full p-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-600"
+                placeholder="Exemplo: 'Médicos alemães confirmam que essa erva cura o diabetes em 48 horas...' ou cole a legenda completa do vídeo."
+                rows={4}
+                className="w-full p-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
@@ -186,7 +190,7 @@ export function DirectFactCheckModal({ isOpen, onClose }: DirectFactCheckModalPr
               <button
                 type="submit"
                 disabled={!inputText.trim()}
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-600/20 flex items-center gap-2 transition-all"
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-600/20 flex items-center gap-2 transition-all cursor-pointer"
               >
                 <Sparkles className="w-4 h-4" />
                 Investigar Evidências com IA
@@ -198,14 +202,13 @@ export function DirectFactCheckModal({ isOpen, onClose }: DirectFactCheckModalPr
 
       {showResultModal && (
         <FactCheckModal
-          post={null}
-          customText={inputText}
-          topic={topic}
           isOpen={showResultModal}
           onClose={() => {
             setShowResultModal(false);
             onClose();
           }}
+          postText={inputText}
+          topic={topic}
         />
       )}
     </>

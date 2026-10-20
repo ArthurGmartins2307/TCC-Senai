@@ -1,9 +1,7 @@
 /**
- * Fato ou Farsa - Seção A: Visão Geral do Perfil
- * - Nome de usuário
- * - URL do perfil
- * - Status da análise
- * - Número de postagens analisadas
+ * Fato ou Farsa - Seção A: Visão Geral do Perfil / Vídeo do TikTok
+ * - Nome de usuário e URL do TikTok
+ * - Status da auditoria e métricas de amostragem
  * - Fonte dos dados e horário da consulta
  */
 
@@ -11,18 +9,16 @@ import React from 'react';
 import {
   ExternalLink,
   CheckCircle,
-  Calendar,
-  Layers,
   Database,
   RotateCcw,
   Download,
   ShieldAlert,
+  Video,
 } from 'lucide-react';
-import { InstagramProfile } from '../../types';
-import { formatNumberBR } from '../../utils/statistics';
+import { TikTokProfile } from '../../types';
 
 interface ProfileOverviewCardProps {
-  profile: InstagramProfile;
+  profile: TikTokProfile;
   totalPosts: number;
   isDemo: boolean;
   selectedDemoId: string;
@@ -50,9 +46,9 @@ export const ProfileOverviewCard: React.FC<ProfileOverviewCardProps> = ({
       {isDemo && (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/40 p-3 text-xs text-amber-900 dark:text-amber-200">
           <div className="flex items-center gap-2">
-            <span className="font-semibold">Modo de demonstração — dados fictícios</span>
+            <span className="font-semibold">Modo de demonstração — dados do TikTok</span>
             <span className="text-amber-700 dark:text-amber-400">
-              (Dados sintéticos didáticos para demonstrar critérios investigativos)
+              (Cenários didáticos para demonstrar critérios estatísticos e verificação de alegações)
             </span>
           </div>
 
@@ -67,8 +63,8 @@ export const ProfileOverviewCard: React.FC<ProfileOverviewCardProps> = ({
             >
               <option value="saude_vital">Saúde Vital (Alegações Médicas)</option>
               <option value="tech_investimentos">Tech Investimentos (Robô de Pix)</option>
-              <option value="dra_mariana">Dra. Mariana (Perfil Científico)</option>
-              <option value="noticias_urgente">Giro de Notícias (Vídeos Antigos)</option>
+              <option value="dra_mariana">Dra. Mariana (Perfil Científico / USP)</option>
+              <option value="noticias_urgente">Plantão Brasil (Cortes Sensacionalistas)</option>
             </select>
           </div>
         </div>
@@ -93,10 +89,10 @@ export const ProfileOverviewCard: React.FC<ProfileOverviewCardProps> = ({
                 {profile.isVerified && (
                   <span
                     className="inline-flex items-center gap-1 rounded-md bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:text-blue-300"
-                    title="Perfil oficial verificado"
+                    title="Conta verificada no TikTok"
                   >
                     <CheckCircle className="h-3 w-3 text-blue-600 dark:text-blue-400" />
-                    <span>Verificado</span>
+                    <span>Verificado no TikTok</span>
                   </span>
                 )}
                 <span className="rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[11px] text-slate-600 dark:text-slate-400">
@@ -104,7 +100,7 @@ export const ProfileOverviewCard: React.FC<ProfileOverviewCardProps> = ({
                 </span>
               </div>
 
-              {/* Nome de usuário e Link Direto */}
+              {/* Nome de usuário e Link Direto no TikTok */}
               <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                 <span className="font-mono font-medium text-[#003876] dark:text-blue-400">
                   @{profile.username}
@@ -130,11 +126,12 @@ export const ProfileOverviewCard: React.FC<ProfileOverviewCardProps> = ({
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-mono">
                 <span className="flex items-center gap-1">
                   <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  Status: <strong>Análise Concluída</strong>
+                  Status: <strong>Auditoria Concluída</strong>
                 </span>
                 <span>•</span>
-                <span>
-                  Amostragem: <strong>{totalPosts} postagens auditadas</strong>
+                <span className="flex items-center gap-1">
+                  <Video className="h-3 w-3" />
+                  Amostragem: <strong>{totalPosts} vídeos do TikTok analisados</strong>
                 </span>
                 <span>•</span>
                 <span>
@@ -143,7 +140,7 @@ export const ProfileOverviewCard: React.FC<ProfileOverviewCardProps> = ({
                 <span>•</span>
                 <span className="flex items-center gap-1">
                   <Database className="h-3 w-3" />
-                  Fonte: <strong>Métricas Públicas Acessíveis</strong>
+                  Fonte: <strong>Métricas Públicas & Base Forense</strong>
                 </span>
               </div>
             </div>
@@ -156,7 +153,7 @@ export const ProfileOverviewCard: React.FC<ProfileOverviewCardProps> = ({
               className="flex items-center gap-1.5 rounded-xl bg-[#003876] dark:bg-blue-600 hover:bg-[#002D62] dark:hover:bg-blue-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors cursor-pointer"
             >
               <RotateCcw className="h-3.5 w-3.5" />
-              <span>Analisar outro perfil</span>
+              <span>Analisar outro TikTok</span>
             </button>
 
             <div className="flex items-center gap-2">
@@ -174,7 +171,7 @@ export const ProfileOverviewCard: React.FC<ProfileOverviewCardProps> = ({
                 className="flex items-center gap-1.5 rounded-lg border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 px-3 py-1.5 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
               >
                 <ShieldAlert className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
-                <span>Opções de denúncia</span>
+                <span>Como denunciar no TikTok</span>
               </button>
             </div>
           </div>

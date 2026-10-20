@@ -1,22 +1,20 @@
 /**
- * Fato ou Farsa - Painel de Análise Focado (DashboardView)
- * Conforme Seção 6: Interface enxuta, clara e com priorização rigorosa:
- * A. Profile Overview
- * B. Key Metrics
- * C. Publication Analysis (Tabela legível + Gráfico focado)
+ * Fato ou Farsa - Painel de Análise Focado (DashboardView para TikTok)
+ * A. Profile Overview (Visão geral do criador/vídeo)
+ * B. Key Metrics (4 cards de métricas)
+ * C. Publication Analysis (Tabela de vídeos do TikTok + Gráfico)
  * D. AI Assessment ("Resultado da análise")
- * E. Reporting Guidance ("Consultar opções de denúncia")
- * F. Fact-Checking de Publicações com Evidências Verificadas
+ * E. Reporting Guidance ("Consultar opções de denúncia no TikTok")
+ * F. Fact-Checking de Vídeos com Evidências Verificadas
  */
 
 import React, { useState } from 'react';
 import {
-  InstagramProfile,
-  InstagramPost,
+  TikTokProfile,
+  TikTokVideo,
   StatisticalSummary,
   AIAnalysisResult,
   InvestigationReport,
-  ThemeConfig,
 } from '../../types';
 import { ProfileOverviewCard } from './ProfileOverviewCard';
 import { KeyMetricsSection } from './KeyMetricsSection';
@@ -33,7 +31,7 @@ interface DashboardViewProps {
   report: InvestigationReport;
   onBackToHome: () => void;
   onSelectDemoScenario: (demoId: string) => void;
-  onPerformNewAnalysis: (username: string) => void;
+  onPerformNewAnalysis: (username: string, manualTranscript?: string) => void;
   onRefreshAi: () => void;
   isLoadingAi: boolean;
   historyReports: InvestigationReport[];
@@ -54,8 +52,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onClearHistory,
   selectedDemoId,
 }) => {
-  const [selectedPost, setSelectedPost] = useState<InstagramPost | null>(null);
-  const [factCheckingPost, setFactCheckingPost] = useState<InstagramPost | null>(null);
+  const [selectedPost, setSelectedPost] = useState<TikTokVideo | null>(null);
+  const [factCheckingPost, setFactCheckingPost] = useState<TikTokVideo | null>(null);
   const [isReportingOpen, setIsReportingOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -63,7 +61,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
-      {/* SEÇÃO A: VISÃO GERAL DO PERFIL */}
+      {/* SEÇÃO A: VISÃO GERAL DO PERFIL / VÍDEO */}
       <ProfileOverviewCard
         profile={report.profile}
         totalPosts={report.posts.length}
@@ -87,7 +85,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         onOpenReporting={() => setIsReportingOpen(true)}
       />
 
-      {/* SEÇÃO C: ANÁLISE DE PUBLICAÇÕES (Tabela de posts + Gráfico focado) */}
+      {/* SEÇÃO C: ANÁLISE DE PUBLICAÇÕES (Tabela de vídeos do TikTok + Gráfico) */}
       <PublicationAnalysisSection
         posts={report.posts}
         stats={report.statistics}
@@ -100,19 +98,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         post={selectedPost}
         stats={report.statistics}
         onClose={() => setSelectedPost(null)}
-        onFactCheck={(post) => setFactCheckingPost(post)}
+        onFactCheck={(post) => {
+          setSelectedPost(null);
+          setFactCheckingPost(post);
+        }}
       />
-
-      {/* Modal de Checagem Factual com Evidências */}
-      {factCheckingPost && (
-        <FactCheckModal
-          post={factCheckingPost}
-          topic={report.profile.category || 'Geral'}
-          profileName={`@${report.profile.username} (${report.profile.fullName})`}
-          isOpen={Boolean(factCheckingPost)}
-          onClose={() => setFactCheckingPost(null)}
-        />
-      )}
 
       <ReportingGuidanceModal
         isOpen={isReportingOpen}
@@ -121,9 +111,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       />
 
       <ReportExportModal
-        report={report}
         isOpen={isExportOpen}
         onClose={() => setIsExportOpen(false)}
+        report={report}
       />
 
       <HistoryDrawer
@@ -140,6 +130,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         onSubmitAnalysis={onPerformNewAnalysis}
         onSelectDemoScenario={onSelectDemoScenario}
       />
+
+      {factCheckingPost && (
+        <FactCheckModal
+          isOpen={!!factCheckingPost}
+          onClose={() => setFactCheckingPost(null)}
+          postText={factCheckingPost.transcript || factCheckingPost.caption}
+          postAuthor={report.profile.username}
+          postUrl={factCheckingPost.url}
+        />
+      )}
     </div>
   );
 };
