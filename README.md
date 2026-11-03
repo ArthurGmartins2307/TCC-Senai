@@ -61,8 +61,6 @@ Em conformidade com as diretrizes do projeto, não se assume que qualquer perfil
 
 ## ⚖️ Princípio Ético & Legal
 
-> **"A análise depende dos dados disponíveis. Métricas de engajamento, isoladamente, não comprovam que um conteúdo é falso."**
-
 - **Sem automação de denúncias:** Não realizamos denúncias automatizadas nem estimulamos assédio ou linchamento virtual.
 - **Conformidade regulatória:** Em conformidade com a LGPD (Lei Geral de Proteção de Dados Pessoais - Lei nº 13.709/2018), o Marco Civil da Internet (Lei 12.965/2014) e as Diretrizes da Comunidade do TikTok.
 
