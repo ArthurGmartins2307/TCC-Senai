@@ -3,12 +3,12 @@
  * Gerencia as rotas /api/status, /api/tiktok/*, /api/verify-claims e /api/analyze
  */
 
-import { handleAiAnalysis } from './analyzeHandler';
+import { handleAiAnalysis } from './analyzeHandler.ts';
 import {
   testTikTokConnection,
   fetchTikTokData,
-} from './tiktokService';
-import { verifyClaimsFromText } from './factCheckService';
+} from './tiktokService.ts';
+import { verifyClaimsFromText } from './factCheckService.ts';
 
 export async function dispatchApiRoute(
   path: string,

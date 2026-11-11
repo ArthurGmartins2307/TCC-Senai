@@ -146,29 +146,29 @@ export const ProfileOverviewCard: React.FC<ProfileOverviewCardProps> = ({
             </div>
           </div>
 
-          {/* Botões de Ação */}
-          <div className="flex flex-wrap items-center lg:flex-col lg:items-end gap-2 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100 dark:border-slate-800">
+          {/* Botões de Ação Responsivos */}
+          <div className="flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-end gap-2 shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-150 dark:border-slate-800 w-full lg:w-auto">
             <button
               onClick={onNewAnalysis}
-              className="flex items-center gap-1.5 rounded-xl bg-[#003876] dark:bg-blue-600 hover:bg-[#002D62] dark:hover:bg-blue-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors cursor-pointer"
+              className="w-full sm:w-auto lg:w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#003876] dark:bg-blue-600 hover:bg-[#002D62] dark:hover:bg-blue-500 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition-colors cursor-pointer min-h-[42px] sm:min-h-0"
             >
               <RotateCcw className="h-3.5 w-3.5" />
               <span>Analisar outro TikTok</span>
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
               <button
                 onClick={onExport}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
-                title="Exportar dados da auditoria"
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-lg border border-emerald-300 dark:border-emerald-800/80 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-2 text-xs font-semibold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors shadow-xs cursor-pointer min-h-[40px] sm:min-h-0"
+                title="Exportar Laudo Pericial Forense formatado em PDF para arquivamento"
               >
-                <Download className="h-3.5 w-3.5" />
-                <span>Exportar</span>
+                <Download className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>Exportar Laudo PDF</span>
               </button>
 
               <button
                 onClick={onOpenReporting}
-                className="flex items-center gap-1.5 rounded-lg border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 px-3 py-1.5 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-lg border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 px-3 py-2 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors min-h-[40px] sm:min-h-0"
               >
                 <ShieldAlert className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
                 <span>Como denunciar no TikTok</span>

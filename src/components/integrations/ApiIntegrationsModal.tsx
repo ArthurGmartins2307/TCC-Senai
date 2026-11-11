@@ -19,6 +19,11 @@ import {
   BookOpen,
   Video,
   FileCheck2,
+  Database,
+  Terminal,
+  Code,
+  Layers,
+  FileText,
 } from 'lucide-react';
 import { fetchSystemStatus, testTikTokToken } from '../../services/geminiService';
 import { SystemStatus } from '../../types';
@@ -26,22 +31,47 @@ import { SystemStatus } from '../../types';
 interface ApiIntegrationsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialTab?: 'status' | 'tutorial' | 'tiktok_rules' | 'django_mvp';
+  onTokenChange?: (token: string | null) => void;
 }
 
-export function ApiIntegrationsModal({ isOpen, onClose }: ApiIntegrationsModalProps) {
+export function ApiIntegrationsModal({
+  isOpen,
+  onClose,
+  initialTab = 'status',
+  onTokenChange,
+}: ApiIntegrationsModalProps) {
   const [status, setStatus] = useState<SystemStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [testTokenInput, setTestTokenInput] = useState('');
+  const [savedToken, setSavedToken] = useState<string>(() => {
+    try {
+      return localStorage.getItem('fatooufarsa_tiktok_token') || '';
+    } catch {
+      return '';
+    }
+  });
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [isTestingToken, setIsTestingToken] = useState(false);
   const [copiedEnv, setCopiedEnv] = useState(false);
-  const [activeTab, setActiveTab] = useState<'status' | 'tutorial' | 'tiktok_rules'>('status');
+  const [activeTab, setActiveTab] = useState<'status' | 'tutorial' | 'tiktok_rules' | 'django_mvp'>(initialTab);
 
   useEffect(() => {
     if (isOpen) {
+      if (initialTab) {
+        setActiveTab(initialTab);
+      }
       loadStatus();
+      try {
+        const stored = localStorage.getItem('fatooufarsa_tiktok_token') || '';
+        setSavedToken(stored);
+        if (stored && !testTokenInput) {
+          setTestTokenInput(stored);
+        }
+      } catch {}
     }
-  }, [isOpen]);
+  }, [isOpen, initialTab]);
 
   const loadStatus = async () => {
     setLoading(true);
@@ -68,6 +98,32 @@ export function ApiIntegrationsModal({ isOpen, onClose }: ApiIntegrationsModalPr
       });
     } finally {
       setIsTestingToken(false);
+    }
+  };
+
+  const handleSaveToken = () => {
+    const trimmed = testTokenInput.trim();
+    if (!trimmed) return;
+    try {
+      localStorage.setItem('fatooufarsa_tiktok_token', trimmed);
+      setSavedToken(trimmed);
+      setSaveSuccess(true);
+      onTokenChange?.(trimmed);
+      setTimeout(() => setSaveSuccess(false), 2500);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleClearToken = () => {
+    try {
+      localStorage.removeItem('fatooufarsa_tiktok_token');
+      setSavedToken('');
+      setTestTokenInput('');
+      setTestResult(null);
+      onTokenChange?.(null);
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -117,10 +173,21 @@ PORT=3000`;
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-slate-200 dark:border-slate-800 px-6 bg-slate-50/50 dark:bg-slate-900/30">
+        <div className="flex border-b border-slate-200 dark:border-slate-800 px-6 bg-slate-50/50 dark:bg-slate-900/30 overflow-x-auto">
+          <button
+            onClick={() => setActiveTab('django_mvp')}
+            className={`py-3 px-4 text-xs font-bold border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'django_mvp'
+                ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
+                : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
+          >
+            <Database className="w-3.5 h-3.5" />
+            MVP Django (TCC &amp; Pesquisa)
+          </button>
           <button
             onClick={() => setActiveTab('status')}
-            className={`py-3 px-4 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
+            className={`py-3 px-4 text-xs font-bold border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
               activeTab === 'status'
                 ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                 : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
@@ -130,7 +197,7 @@ PORT=3000`;
           </button>
           <button
             onClick={() => setActiveTab('tutorial')}
-            className={`py-3 px-4 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
+            className={`py-3 px-4 text-xs font-bold border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
               activeTab === 'tutorial'
                 ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                 : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
@@ -140,7 +207,7 @@ PORT=3000`;
           </button>
           <button
             onClick={() => setActiveTab('tiktok_rules')}
-            className={`py-3 px-4 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
+            className={`py-3 px-4 text-xs font-bold border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
               activeTab === 'tiktok_rules'
                 ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                 : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
@@ -235,12 +302,27 @@ PORT=3000`;
                 </div>
               </div>
 
-              {/* Testador de Conexão Independente com TikTok */}
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 space-y-3">
+              {/* Testador e Gerenciador de Conexão com a API do TikTok */}
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 space-y-3.5">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider font-mono">
-                    Testar Conexão com a API do TikTok
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider font-mono">
+                      Gerenciar Conexão com a API Oficial do TikTok
+                    </h3>
+                    {savedToken ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                        Ativa no Navegador
+                      </span>
+                    ) : status?.tiktok?.configured ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                        Ativa via .env
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                        Aguardando Token
+                      </span>
+                    )}
+                  </div>
                   <button
                     onClick={loadStatus}
                     className="p-1 text-slate-400 hover:text-slate-600 transition-colors"
@@ -249,30 +331,70 @@ PORT=3000`;
                     <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                   </button>
                 </div>
-                <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Teste o token de acesso configurado no servidor ou informe um token temporário do TikTok Developer para validar endpoints da Display API:
+
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Insira o seu <strong>Access Token</strong> gerado no portal oficial{' '}
+                  <a
+                    href="https://developers.tiktok.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 underline font-medium"
+                  >
+                    TikTok for Developers
+                  </a>{' '}
+                  (Display API v2). As consultas passarão a buscar métricas reais (reproduções, curtidas, seguidores e comentários) diretamente dos servidores do TikTok.
                 </p>
 
-                <div className="flex gap-2">
-                  <input
-                    type="password"
-                    value={testTokenInput}
-                    onChange={(e) => setTestTokenInput(e.target.value)}
-                    placeholder="Deixe em branco para testar TIKTOK_ACCESS_TOKEN do .env"
-                    className="flex-1 px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                  <button
-                    onClick={handleTestToken}
-                    disabled={isTestingToken}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
-                  >
-                    {isTestingToken ? (
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <Check className="w-3.5 h-3.5" />
-                    )}
-                    <span>Testar Token</span>
-                  </button>
+                <div className="space-y-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="password"
+                      value={testTokenInput}
+                      onChange={(e) => setTestTokenInput(e.target.value)}
+                      placeholder="Cole aqui seu TIKTOK_ACCESS_TOKEN (ex: act.example...)"
+                      className="flex-1 px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={handleTestToken}
+                        disabled={isTestingToken}
+                        className="px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+                        title="Verificar validade com a API do TikTok sem salvar"
+                      >
+                        {isTestingToken ? (
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Check className="w-3.5 h-3.5" />
+                        )}
+                        <span>Testar</span>
+                      </button>
+
+                      <button
+                        onClick={handleSaveToken}
+                        disabled={!testTokenInput.trim()}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      >
+                        {saveSuccess ? <Check className="w-3.5 h-3.5" /> : <Key className="w-3.5 h-3.5" />}
+                        <span>{saveSuccess ? 'Salvo!' : 'Salvar & Ativar'}</span>
+                      </button>
+
+                      {savedToken && (
+                        <button
+                          onClick={handleClearToken}
+                          className="px-2.5 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                          title="Remover token salvo no navegador"
+                        >
+                          Limpar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {saveSuccess && (
+                    <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold animate-in fade-in">
+                      ✓ Token salvo com sucesso! As novas auditorias buscarão dados reais na TikTok Display API.
+                    </p>
+                  )}
                 </div>
 
                 {testResult && (
@@ -408,6 +530,133 @@ PORT=3000`}
                   <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
                     Os Termos de Serviço do TikTok proíbem explicitamente web scraping, engenharia reversa de chaves móveis e automação pirata. O Fato ou Farsa adota postura ética rigorosa: respeita as APIs oficiais e oferece o fluxo alternativo transparente de checagem direta de legendas e transcrições.
                   </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ABA 4: MVP DJANGO (TCC & PESQUISA ACADÊMICA) */}
+          {activeTab === 'django_mvp' && (
+            <div className="space-y-6">
+              {/* Banner do Backend Django */}
+              <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 border border-emerald-500/30 flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-emerald-600 text-white mt-0.5 shrink-0">
+                  <Database className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    MVP Completo em Python e Django 5 (TCC)
+                    <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-300 dark:border-emerald-800">
+                      Arquitetura Ativa &amp; 14 Testes OK
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    O backend foi modelado para pesquisa científica e Trabalho de Conclusão de Curso (TCC), provendo persistência relacional no SQLite via Django ORM, endpoints RESTful padronizados (DRF) e desacoplamento de serviços forenses.
+                  </p>
+                </div>
+              </div>
+
+              {/* Grid: Estrutura do Backend */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 1. Modelos Relacionais */}
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
+                    <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    Modelos do Django ORM (db.sqlite3)
+                  </div>
+                  <div className="space-y-2 text-[11px]">
+                    <div className="p-2.5 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80">
+                      <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">TikTokProfile</span>
+                      <p className="text-slate-500 dark:text-slate-400 mt-0.5">Criadores auditados, métricas públicas, selo de verificação e bio.</p>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80">
+                      <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">TikTokVideo</span>
+                      <p className="text-slate-500 dark:text-slate-400 mt-0.5">Publicações, plays, curtidas, comentários, shares e flags de outlier.</p>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80">
+                      <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">InvestigationReport</span>
+                      <p className="text-slate-500 dark:text-slate-400 mt-0.5">Dossiê pericial com média, mediana, IQR, taxa de views/seguidores e laudo.</p>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80">
+                      <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">ClaimVerification &amp; EvidenceSource</span>
+                      <p className="text-slate-500 dark:text-slate-400 mt-0.5">Checagem das 6 categorias oficiais com links de órgãos (ANVISA, CFM, CVM).</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Endpoints da API REST */}
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
+                    <Code className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    Endpoints Django REST Framework
+                  </div>
+                  <div className="space-y-1.5 text-[11px] font-mono">
+                    <div className="p-2 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
+                      <span className="text-blue-600 dark:text-blue-400 font-bold">GET /api/status</span>
+                      <span className="text-[10px] text-slate-400 font-sans">Diagnóstico</span>
+                    </div>
+                    <div className="p-2 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">POST /api/analyze</span>
+                      <span className="text-[10px] text-slate-400 font-sans">Auditoria &amp; ORM</span>
+                    </div>
+                    <div className="p-2 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">POST /api/verify-claims</span>
+                      <span className="text-[10px] text-slate-400 font-sans">Checagem Factual</span>
+                    </div>
+                    <div className="p-2 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">POST /api/calculate-stats</span>
+                      <span className="text-[10px] text-slate-400 font-sans">Métricas Puras</span>
+                    </div>
+                    <div className="p-2 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
+                      <span className="text-blue-600 dark:text-blue-400 font-bold">GET /api/history</span>
+                      <span className="text-[10px] text-slate-400 font-sans">Histórico SQLite</span>
+                    </div>
+                    <div className="p-2 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
+                      <span className="text-purple-600 dark:text-purple-400 font-bold">GET /admin/</span>
+                      <span className="text-[10px] text-slate-400 font-sans">Django Admin</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Comandos do Terminal */}
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-900 text-slate-100 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold text-white">
+                    <Terminal className="w-4 h-4 text-emerald-400" />
+                    Comandos para Execução &amp; Testes no Terminal
+                  </div>
+                  <span className="text-[10px] text-slate-400">Python 3 + Django 5</span>
+                </div>
+                <div className="space-y-2 text-[11px] font-mono">
+                  <div className="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 flex items-center justify-between">
+                    <div>
+                      <span className="text-slate-400"># Iniciar servidor Django:</span>
+                      <div className="text-emerald-400 select-all">python manage.py runserver 127.0.0.1:5001 --noreload</div>
+                    </div>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 flex items-center justify-between">
+                    <div>
+                      <span className="text-slate-400"># Executar os 14 testes unitários:</span>
+                      <div className="text-emerald-400 select-all">python manage.py test verification -v 2</div>
+                    </div>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 flex items-center justify-between">
+                    <div>
+                      <span className="text-slate-400"># Criar administrador para o Django Admin:</span>
+                      <div className="text-emerald-400 select-all">python manage.py createsuperuser</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Guia e Documentação */}
+              <div className="p-3.5 rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50/50 dark:bg-emerald-950/20 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-xs text-slate-700 dark:text-slate-300">
+                    O documento completo com esquemas e teoria está salvo em: <strong className="font-mono text-emerald-700 dark:text-emerald-300">DJANGO_MVP_DOCUMENTATION.md</strong>
+                  </span>
                 </div>
               </div>
             </div>

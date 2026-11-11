@@ -210,64 +210,97 @@ Tarefas:
 4. Responda em Português do Brasil com fontes oficiais ou de checagem.
 `;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents: prompt,
-        config: {
-          tools: [{ googleSearch: {} }],
-        },
-      });
+      const withTimeout = <T>(p: Promise<T>, ms: number = 6000): Promise<T> =>
+        Promise.race([
+          p,
+          new Promise<T>((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms)),
+        ]);
 
-      const responseText = response.text || '';
-      const groundingChunks = (response.candidates?.[0]?.groundingMetadata as any)?.groundingChunks || [];
+      let response: any = null;
+      let usedGrounding = false;
 
-      // Mapear fontes da busca do Google
-      const extractedSources: VerifiedSource[] = groundingChunks.map((chunk: any) => ({
-        name: chunk.web?.title ? chunk.web.title.split('-')[0].trim() : 'Fonte Web Verificada',
-        title: chunk.web?.title || 'Referência Externa',
-        url: chunk.web?.uri || '#',
-        isOfficialAgency: (chunk.web?.uri || '').includes('.gov.br') || (chunk.web?.uri || '').includes('.org.br'),
-      }));
-
-      // Extrair alegações do texto ou montar item estruturado
-      const rawClaims = extractClaimsFromCaption(caption);
-      const primaryClaim = rawClaims[0] || caption.slice(0, 140);
-
-      // Determinar veredicto do texto do modelo
-      let verdict: ClaimVerificationItem['verdict'] = 'Sem Evidências Científicas';
-      const lowerRes = responseText.toLowerCase();
-      if (lowerRes.includes('falso') || lowerRes.includes('inverídico') || lowerRes.includes('golpe')) {
-        verdict = 'Falso';
-      } else if (lowerRes.includes('enganoso') || lowerRes.includes('distorcido')) {
-        verdict = 'Enganoso';
-      } else if (lowerRes.includes('verdadeiro') || lowerRes.includes('comprovado')) {
-        verdict = 'Verdadeiro / Respaldado';
-      } else if (lowerRes.includes('fora de contexto')) {
-        verdict = 'Fora de Contexto';
+      try {
+        response = await withTimeout(
+          ai.models.generateContent({
+            model: 'gemini-3.8-flash',
+            contents: prompt,
+            config: {
+              tools: [{ googleSearch: {} }],
+            },
+          }),
+          6000
+        );
+        usedGrounding = true;
+      } catch {
+        // Se a busca com Grounding atingir cota (429) ou timeout, tenta geração direta rápida
+        try {
+          response = await withTimeout(
+            ai.models.generateContent({
+              model: 'gemini-3.8-flash',
+              contents: prompt,
+            }),
+            4000
+          );
+        } catch {
+          // Se também atingir cota ou timeout, prossegue instantaneamente para a Base Forense Nacional
+          response = null;
+        }
       }
 
-      const claimItem: ClaimVerificationItem = {
-        id: `claim_${Date.now()}_1`,
-        claimText: primaryClaim,
-        category: (topic as any) || 'Geral',
-        verdict,
-        confidenceScore: verdict === 'Falso' ? 95 : 85,
-        evidenceSummary: responseText.slice(0, 500) + (responseText.length > 500 ? '...' : ''),
-        sources: extractedSources.length > 0 ? extractedSources.slice(0, 4) : getFallbackSourcesForTopic(topic),
-      };
+      if (response && response.text) {
+        const responseText = response.text || '';
+        const groundingChunks = (response.candidates?.[0]?.groundingMetadata as any)?.groundingChunks || [];
 
-      const riskLevel = verdict === 'Falso' ? 'critico' : verdict === 'Enganoso' ? 'alto' : 'moderado';
+        // Mapear fontes da busca do Google
+        const extractedSources: VerifiedSource[] = groundingChunks.map((chunk: any) => ({
+          name: chunk.web?.title ? chunk.web.title.split('-')[0].trim() : 'Fonte Web Verificada',
+          title: chunk.web?.title || 'Referência Externa',
+          url: chunk.web?.uri || '#',
+          isOfficialAgency: (chunk.web?.uri || '').includes('.gov.br') || (chunk.web?.uri || '').includes('.org.br'),
+        }));
 
-      return {
-        textAnalyzed: caption,
-        topic,
-        claims: [claimItem],
-        overallRiskLevel: riskLevel,
-        engineUsed: 'Google Gemini 3.8 Flash (com Google Search Grounding)',
-        investigatedAt: timestamp,
-      };
-    } catch (err: any) {
-      console.warn('Gemini Search Grounding indisponível ou com cota excedida (429). Ativando Base Forense Nacional.', err.message);
+        // Extrair alegações do texto ou montar item estruturado
+        const rawClaims = extractClaimsFromCaption(caption);
+        const primaryClaim = rawClaims[0] || caption.slice(0, 140);
+
+        // Determinar veredicto do texto do modelo
+        let verdict: ClaimVerificationItem['verdict'] = 'Sem Evidências Científicas';
+        const lowerRes = responseText.toLowerCase();
+        if (lowerRes.includes('falso') || lowerRes.includes('inverídico') || lowerRes.includes('golpe')) {
+          verdict = 'Falso';
+        } else if (lowerRes.includes('enganoso') || lowerRes.includes('distorcido')) {
+          verdict = 'Enganoso';
+        } else if (lowerRes.includes('verdadeiro') || lowerRes.includes('comprovado')) {
+          verdict = 'Verdadeiro / Respaldado';
+        } else if (lowerRes.includes('fora de contexto')) {
+          verdict = 'Fora de Contexto';
+        }
+
+        const claimItem: ClaimVerificationItem = {
+          id: `claim_${Date.now()}_1`,
+          claimText: primaryClaim,
+          category: (topic as any) || 'Geral',
+          verdict,
+          confidenceScore: verdict === 'Falso' ? 95 : 85,
+          evidenceSummary: responseText.slice(0, 500) + (responseText.length > 500 ? '...' : ''),
+          sources: extractedSources.length > 0 ? extractedSources.slice(0, 4) : getFallbackSourcesForTopic(topic),
+        };
+
+        const riskLevel = verdict === 'Falso' ? 'critico' : verdict === 'Enganoso' ? 'alto' : 'moderado';
+
+        return {
+          textAnalyzed: caption,
+          topic,
+          claims: [claimItem],
+          overallRiskLevel: riskLevel,
+          engineUsed: usedGrounding
+            ? 'Google Gemini 3.8 Flash (com Google Search Grounding)'
+            : 'Google Gemini 3.8 Flash (Análise Direta)',
+          investigatedAt: timestamp,
+        };
+      }
+    } catch {
+      // Falha tratada silenciosamente pelo fallback forense
     }
   }
 

@@ -1,1 +1,20 @@
 @import "tailwindcss";
+
+/* 
+ * Fato ou Farsa - Suporte ao Modo Escuro e Claro com Tailwind CSS v4
+ * Permite que a classe .dark no elemento raiz <html> ative todos os modificadores dark:
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* Transição suave ao alternar entre tema claro e escuro */
+html, body {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}

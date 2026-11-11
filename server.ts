@@ -1,36 +1,138 @@
 import express from 'express';
 import path from 'path';
+import http from 'http';
 import dotenv from 'dotenv';
-import { dispatchApiRoute } from './server/apiRouter';
+import { spawn, spawnSync } from 'child_process';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+const PYTHON_PORT = process.env.PYTHON_BACKEND_PORT || 5001;
 
-app.use(express.json());
+// Inicia o backend Python Django se não estiver rodando e se Django estiver instalado
+let pythonProc: any = null;
+const startPythonBackend = () => {
+  const req = http.get(`http://127.0.0.1:${PYTHON_PORT}/healthz`, (res) => {
+    console.log(`[Full-Stack] Backend Python Django detectado e ativo na porta ${PYTHON_PORT} (HTTP ${res.statusCode}).`);
+  });
+  req.on('error', () => {
+    try {
+      const check = spawnSync('python3', ['-c', 'import django'], { timeout: 2000 });
+      if (check.status !== 0) {
+        console.log('[Full-Stack] Django não instalado no ambiente (Web/Node). Gateway Node.js ativo atendendo /api/* com 100% de paridade.');
+        return;
+      }
+    } catch {
+      return;
+    }
 
-// Roteador de APIs Fato ou Farsa
-app.all('/api/*', async (req, res) => {
-  try {
-    const query = req.query as Record<string, string>;
-    const response = await dispatchApiRoute(req.path, req.method, req.body, query);
-    res.status(response.status).json(response.data);
-  } catch (err: any) {
-    console.error('Erro na API:', err);
-    res.status(500).json({ error: err.message || 'Erro interno no servidor de auditoria.' });
+    console.log(`[Full-Stack] Iniciando backend Python Django na porta ${PYTHON_PORT}...`);
+    pythonProc = spawn('python3', ['manage.py', 'runserver', `127.0.0.1:${PYTHON_PORT}`, '--noreload'], {
+      stdio: 'pipe',
+      env: { ...process.env, PYTHON_BACKEND_PORT: String(PYTHON_PORT) },
+    });
+    pythonProc.on('error', (err: any) => {
+      console.log('[Full-Stack] Nota: Python Django indisponível, gateway Node ativo:', err.message);
+    });
+  });
+};
+
+startPythonBackend();
+
+import { dispatchApiRoute } from './server/apiRouter.ts';
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// Encaminhamento de /api/* para o backend Python Django com fallback resiliente para dispatchApiRoute
+app.all('/api/*', (req, res) => {
+  const urlObj = new URL(req.originalUrl, `http://${req.headers.host || 'localhost'}`);
+  const pathname = urlObj.pathname;
+  const query: Record<string, string> = {};
+  urlObj.searchParams.forEach((v, k) => {
+    query[k] = v;
+  });
+
+  const handleInternal = async () => {
+    try {
+      const result = await dispatchApiRoute(pathname, req.method, req.body, query);
+      res.status(result.status).json(result.data);
+    } catch (e: any) {
+      res.status(500).json({ error: e?.message || 'Erro no gateway' });
+    }
+  };
+
+  const bodyData = req.body ? JSON.stringify(req.body) : '';
+
+  const options: http.RequestOptions = {
+    hostname: '127.0.0.1',
+    port: PYTHON_PORT,
+    path: req.originalUrl,
+    method: req.method,
+    headers: {
+      ...req.headers,
+      host: `127.0.0.1:${PYTHON_PORT}`,
+      'content-length': String(Buffer.byteLength(bodyData)),
+    },
+    timeout: 4000,
+  };
+
+  const proxyReq = http.request(options, (proxyRes) => {
+    if (proxyRes.statusCode === 404) {
+      handleInternal();
+      return;
+    }
+    res.writeHead(proxyRes.statusCode || 200, proxyRes.headers);
+    proxyRes.pipe(res);
+  });
+
+  proxyReq.on('error', () => {
+    handleInternal();
+  });
+
+  proxyReq.on('timeout', () => {
+    proxyReq.destroy();
+    handleInternal();
+  });
+
+  if (bodyData) {
+    proxyReq.write(bodyData);
   }
+  proxyReq.end();
 });
 
-// Arquivos estáticos da build do Vite
-const distPath = path.resolve(__dirname, 'dist');
-app.use(express.static(distPath));
+// Servir arquivos estáticos da pasta public e da build do Vite
+const distPath = path.resolve(process.cwd(), 'dist');
+const publicPath = path.resolve(process.cwd(), 'public');
 
-// SPA fallback
+// Endpoints explícitos de verificação do TikTok for Developers (URL Prefix / Site Verification)
+const TIKTOK_VERIFICATION_CONTENT = 'tiktok-developers-site-verification=lvFvYxrZ5bGEB7EajcbCN2zJ4L4a82D7';
+
+// Middleware prioritário: atende qualquer requisição para o arquivo de verificação do TikTok
+app.use((req, res, next) => {
+  if (req.path.includes('tiktoklvFvYxrZ5bGEB7EajcbCN2zJ4L4a82D7')) {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    return res.status(200).send(TIKTOK_VERIFICATION_CONTENT);
+  }
+  next();
+});
+
+app.use(express.static(distPath));
+app.use(express.static(publicPath));
+
+// SPA fallback - preserva rotas como /terms, /terms/, /privacy, /privacy/
 app.get('*', (req, res) => {
-  res.sendFile(path.join(distPath, 'index.html'));
+  const indexFile = path.join(distPath, 'index.html');
+  res.sendFile(indexFile, (err) => {
+    if (err) {
+      // Fallback para desenvolvimento caso dist ainda não exista
+      res.sendFile(path.resolve(process.cwd(), 'index.html'));
+    }
+  });
 });
 
 app.listen(port, () => {
-  console.log(`Servidor Fato ou Farsa operando na porta ${port}`);
+  console.log(`Servidor Fato ou Farsa operando na porta ${port} (Proxy -> Flask :${PYTHON_PORT})`);
 });

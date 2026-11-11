@@ -76,84 +76,93 @@ ${p.soundTitle ? `Som: "${p.soundTitle}"` : ''}`
 Avalie com rigor forense e retorne o JSON estruturado.
 `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: userPrompt,
-      config: {
-        systemInstruction,
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            classification: {
-              type: Type.STRING,
-              description:
-                'Uma das 5 classificações exatas em português brasileiro permitidas.',
-            },
-            confidenceScore: {
-              type: Type.NUMBER,
-              description: 'Pontuação de 0 a 100 indicando o grau de evidência disponível.',
-            },
-            confidenceLevel: {
-              type: Type.STRING,
-              description: 'Baixa, Média ou Alta',
-            },
-            evidenceSummary: {
-              type: Type.STRING,
-              description: 'Síntese forense concisa em português do Brasil.',
-            },
-            supportingObservations: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-              description: 'Principais evidências e fatos verificáveis observados.',
-            },
-            alternativeExplanations: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-              description: 'Hipóteses benignas que justificam o padrão observado.',
-            },
-            limitations: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-              description: 'O que não pôde ser verificado ou dados indisponíveis.',
-            },
-            recommendedNextSteps: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-              description: 'Ações recomendadas para o cidadão ou analista.',
-            },
-            analyzedAspects: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  aspect: { type: Type.STRING },
-                  evaluation: { type: Type.STRING },
-                  status: { type: Type.STRING, description: 'normal, alerta ou critico' },
+    const withTimeout = <T>(p: Promise<T>, ms: number = 6000): Promise<T> =>
+      Promise.race([
+        p,
+        new Promise<T>((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms)),
+      ]);
+
+    const response = await withTimeout(
+      ai.models.generateContent({
+        model: 'gemini-3.8-flash',
+        contents: userPrompt,
+        config: {
+          systemInstruction,
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              classification: {
+                type: Type.STRING,
+                description:
+                  'Uma das 5 classificações exatas em português brasileiro permitidas.',
+              },
+              confidenceScore: {
+                type: Type.NUMBER,
+                description: 'Pontuação de 0 a 100 indicando o grau de evidência disponível.',
+              },
+              confidenceLevel: {
+                type: Type.STRING,
+                description: 'Baixa, Média ou Alta',
+              },
+              evidenceSummary: {
+                type: Type.STRING,
+                description: 'Síntese forense concisa em português do Brasil.',
+              },
+              supportingObservations: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+                description: 'Principais evidências e fatos verificáveis observados.',
+              },
+              alternativeExplanations: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+                description: 'Hipóteses benignas que justificam o padrão observado.',
+              },
+              limitations: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+                description: 'O que não pôde ser verificado ou dados indisponíveis.',
+              },
+              recommendedNextSteps: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+                description: 'Ações recomendadas para o cidadão ou analista.',
+              },
+              analyzedAspects: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    aspect: { type: Type.STRING },
+                    evaluation: { type: Type.STRING },
+                    status: { type: Type.STRING, description: 'normal, alerta ou critico' },
+                  },
+                  required: ['aspect', 'evaluation', 'status'],
                 },
-                required: ['aspect', 'evaluation', 'status'],
+              },
+              requiresOfficialReport: {
+                type: Type.BOOLEAN,
+                description: 'True se houver suspeita grave justificando encaminhamento para denúncia.',
               },
             },
-            requiresOfficialReport: {
-              type: Type.BOOLEAN,
-              description: 'True se houver suspeita grave justificando encaminhamento para denúncia.',
-            },
+            required: [
+              'classification',
+              'confidenceScore',
+              'confidenceLevel',
+              'evidenceSummary',
+              'supportingObservations',
+              'alternativeExplanations',
+              'limitations',
+              'recommendedNextSteps',
+              'analyzedAspects',
+              'requiresOfficialReport',
+            ],
           },
-          required: [
-            'classification',
-            'confidenceScore',
-            'confidenceLevel',
-            'evidenceSummary',
-            'supportingObservations',
-            'alternativeExplanations',
-            'limitations',
-            'recommendedNextSteps',
-            'analyzedAspects',
-            'requiresOfficialReport',
-          ],
         },
-      },
-    });
+      }),
+      6000
+    );
 
     const parsed = JSON.parse(response.text || '{}');
     return {
@@ -162,8 +171,11 @@ Avalie com rigor forense e retorne o JSON estruturado.
       modelUsed: 'gemini-3.8-flash (TikTok Verification Engine)',
     };
   } catch (err: any) {
-    console.error('Erro na chamada ao Gemini API:', err);
-    return getFallbackDeterministicAnalysis(payload, err?.message);
+    const isQuota = err?.message?.includes('429') || err?.message?.includes('quota');
+    const note = isQuota
+      ? 'Cota temporária de requisições excedida. Base Forense Local ativada.'
+      : 'Avaliação processada via Base Forense Determinística.';
+    return getFallbackDeterministicAnalysis(payload, note);
   }
 }
 

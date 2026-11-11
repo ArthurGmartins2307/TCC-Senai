@@ -131,50 +131,52 @@ export const PublicationAnalysisSection: React.FC<PublicationAnalysisSectionProp
             </div>
           </div>
 
-          {/* Gráfico de Barras Relativas */}
-          <div className="h-32 flex items-end gap-2 sm:gap-3 pt-4 px-2 border-b border-slate-200 dark:border-slate-800">
-            {chronologicalPosts.map((post, idx) => {
-              const viewHeight = post.viewsCount
-                ? Math.max(12, Math.round((post.viewsCount / maxViews) * 100))
-                : 6;
-              const likeHeight = post.likesCount
-                ? Math.max(6, Math.round((post.likesCount / maxLikes) * 100))
-                : 3;
+          {/* Gráfico de Barras Relativas com rolagem horizontal suave em telas estreitas */}
+          <div className="overflow-x-auto pb-2 -mx-2 px-2">
+            <div className="h-32 min-w-[460px] sm:min-w-0 flex items-end gap-2 sm:gap-3 pt-4 px-2 border-b border-slate-200 dark:border-slate-800">
+              {chronologicalPosts.map((post, idx) => {
+                const viewHeight = post.viewsCount
+                  ? Math.max(12, Math.round((post.viewsCount / maxViews) * 100))
+                  : 6;
+                const likeHeight = post.likesCount
+                  ? Math.max(6, Math.round((post.likesCount / maxLikes) * 100))
+                  : 3;
 
-              return (
-                <div
-                  key={post.id}
-                  onClick={() => onSelectPost(post)}
-                  className="flex-1 flex flex-col items-center gap-1 group cursor-pointer relative h-full justify-end"
-                  title={`Vídeo ${idx + 1}: ${post.viewsCount ? formatNumberBR(post.viewsCount) : 'Sem'} views, ${post.likesCount ? formatNumberBR(post.likesCount) : '0'} curtidas`}
-                >
-                  {/* Marcador de Outlier */}
-                  {post.isOutlier && (
-                    <span className="h-2 w-2 rounded-full bg-amber-500 animate-ping absolute -top-1" />
-                  )}
+                return (
+                  <div
+                    key={post.id}
+                    onClick={() => onSelectPost(post)}
+                    className="flex-1 flex flex-col items-center gap-1 group cursor-pointer relative h-full justify-end"
+                    title={`Vídeo ${idx + 1}: ${post.viewsCount ? formatNumberBR(post.viewsCount) : 'Sem'} views, ${post.likesCount ? formatNumberBR(post.likesCount) : '0'} curtidas`}
+                  >
+                    {/* Marcador de Outlier */}
+                    {post.isOutlier && (
+                      <span className="h-2 w-2 rounded-full bg-amber-500 animate-ping absolute -top-1" />
+                    )}
 
-                  {/* Barra Dupla: Views e Curtidas */}
-                  <div className="w-full max-w-[28px] flex items-end justify-center gap-0.5 h-full">
-                    <div
-                      style={{ height: `${viewHeight}%` }}
-                      className={`w-1/2 rounded-t transition-all ${
-                        post.isOutlier
-                          ? 'bg-amber-500/80 group-hover:bg-amber-600'
-                          : 'bg-[#003876] dark:bg-blue-600 group-hover:bg-[#002D62]'
-                      }`}
-                    />
-                    <div
-                      style={{ height: `${likeHeight}%` }}
-                      className="w-1/2 rounded-t bg-[#00A86B] dark:bg-emerald-500 group-hover:bg-[#008f5a] transition-all"
-                    />
+                    {/* Barra Dupla: Views e Curtidas */}
+                    <div className="w-full max-w-[28px] flex items-end justify-center gap-0.5 h-full">
+                      <div
+                        style={{ height: `${viewHeight}%` }}
+                        className={`w-1/2 rounded-t transition-all ${
+                          post.isOutlier
+                            ? 'bg-amber-500/80 group-hover:bg-amber-600'
+                            : 'bg-[#003876] dark:bg-blue-600 group-hover:bg-[#002D62]'
+                        }`}
+                      />
+                      <div
+                        style={{ height: `${likeHeight}%` }}
+                        className="w-1/2 rounded-t bg-[#00A86B] dark:bg-emerald-500 group-hover:bg-[#008f5a] transition-all"
+                      />
+                    </div>
+
+                    <span className="text-[10px] font-mono text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-100 truncate w-full text-center">
+                      V{idx + 1}
+                    </span>
                   </div>
-
-                  <span className="text-[10px] font-mono text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-100 truncate w-full text-center">
-                    V{idx + 1}
-                  </span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
           <p className="text-[11px] text-slate-500 dark:text-slate-400 italic">
             Dica: Clique em qualquer coluna para abrir a inspeção completa e transcrição do vídeo correspondente.
@@ -229,6 +231,12 @@ export const PublicationAnalysisSection: React.FC<PublicationAnalysisSectionProp
             Com alertas ({posts.filter((p) => p.suspicionFlags.length > 0).length})
           </button>
         </div>
+      </div>
+
+      {/* Dica de rolagem horizontal em telas móveis */}
+      <div className="sm:hidden -mb-2 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 px-1">
+        <span>Deslize a tabela para o lado para ver métricas e ações &rarr;</span>
+        <span className="font-mono text-[10px]">({sortedPosts.length} vídeos)</span>
       </div>
 
       {/* Tabela de Publicações */}

@@ -25,6 +25,8 @@ interface HomeSimpleViewProps {
   onSelectDemo: (demoId: string) => void;
   isLoading: boolean;
   onOpenDirectFactCheck?: () => void;
+  onOpenApiModal?: () => void;
+  isTikTokConnected?: boolean;
 }
 
 const TIKTOK_DEMO_PRESETS = [
@@ -63,6 +65,8 @@ export const HomeSimpleView: React.FC<HomeSimpleViewProps> = ({
   onSelectDemo,
   isLoading,
   onOpenDirectFactCheck,
+  onOpenApiModal,
+  isTikTokConnected = false,
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [showManualTranscript, setShowManualTranscript] = useState(false);
@@ -96,7 +100,7 @@ export const HomeSimpleView: React.FC<HomeSimpleViewProps> = ({
         </div>
 
         {/* Identificador Oficial do Produto em Local Apropriado */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-250 dark:border-slate-800 text-xs font-semibold shadow-xs">
+        <div className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 px-3.5 py-1 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-250 dark:border-slate-800 text-[11px] sm:text-xs font-semibold shadow-xs max-w-full text-center">
           <span className="text-[#003876] dark:text-[#38bdf8] font-bold">Fato</span>
           <span className="text-[#F5B800] font-bold">ou</span>
           <span className="text-[#00A86B] dark:text-[#34d399] font-bold">Farsa</span>
@@ -116,9 +120,9 @@ export const HomeSimpleView: React.FC<HomeSimpleViewProps> = ({
       </div>
 
       {/* Caixa Principal de Entrada */}
-      <div className="w-full bg-white dark:bg-slate-900 border border-slate-250 dark:border-slate-800 rounded-2xl p-5 sm:p-7 shadow-sm transition-colors">
+      <div className="w-full bg-white dark:bg-slate-900 border border-slate-250 dark:border-slate-800 rounded-2xl p-4 sm:p-7 shadow-sm transition-colors">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-1.5">
             {/* Campo Principal Conforme Seção 5: Link do vídeo do TikTok */}
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
               <Video className="h-4 w-4 text-[#003876] dark:text-blue-400" />

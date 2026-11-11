@@ -1,0 +1,16 @@
+[
+  "backend/tests/test_fact_check.py::test_extract_financial_claims",
+  "backend/tests/test_fact_check.py::test_extract_medical_claims",
+  "backend/tests/test_fact_check.py::test_fallback_unverified_claim",
+  "backend/tests/test_statistics.py::test_calculate_statistical_summary",
+  "backend/tests/test_statistics.py::test_compute_average",
+  "backend/tests/test_statistics.py::test_compute_engagement_rate",
+  "backend/tests/test_statistics.py::test_compute_median",
+  "backend/tests/test_statistics.py::test_views_to_followers_ratio",
+  "backend/tests/test_tiktok_service.py::test_normalize_empty_input",
+  "backend/tests/test_tiktok_service.py::test_normalize_tiktok_handle",
+  "backend/tests/test_tiktok_service.py::test_normalize_tiktok_profile",
+  "backend/tests/test_tiktok_service.py::test_normalize_tiktok_url",
+  "backend/tests/test_tiktok_service.py::test_tiktok_connection",
+  "backend/tests/test_tiktok_service.py::test_tiktok_connection_unconfigured"
+]

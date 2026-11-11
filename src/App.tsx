@@ -12,7 +12,7 @@ import {
 } from './types';
 import { calculateStatisticalSummary } from './utils/statistics';
 import { DEMO_DATASETS } from './data/mockProfiles';
-import { requestAiAnalysis } from './services/geminiService';
+import { requestAiAnalysis, fetchTikTokProfileData } from './services/geminiService';
 import { AppNavbar } from './components/layout/AppNavbar';
 import { HomeSimpleView } from './components/home/HomeSimpleView';
 import { DashboardView } from './components/dashboard/DashboardView';
@@ -21,6 +21,19 @@ import { HistoryDrawer } from './components/dashboard/HistoryDrawer';
 import { NewAnalysisModal } from './components/dashboard/NewAnalysisModal';
 import { DirectFactCheckModal } from './components/factcheck/DirectFactCheckModal';
 import { ApiIntegrationsModal } from './components/integrations/ApiIntegrationsModal';
+import { TermsPage } from './components/legal/TermsPage';
+import { PrivacyPage } from './components/legal/PrivacyPage';
+
+export type AppView = 'home' | 'dashboard' | 'terms' | 'privacy';
+
+const getInitialView = (): AppView => {
+  if (typeof window !== 'undefined') {
+    const path = window.location.pathname.toLowerCase();
+    if (path === '/terms' || path.startsWith('/terms/')) return 'terms';
+    if (path === '/privacy' || path.startsWith('/privacy/')) return 'privacy';
+  }
+  return 'home';
+};
 
 const DEFAULT_THEME_CONFIG: ThemeConfig = {
   mode: 'light',
@@ -36,8 +49,8 @@ const DEFAULT_THEME_CONFIG: ThemeConfig = {
 };
 
 export default function App() {
-  // Visualização ativa: 'home' ou 'dashboard'
-  const [currentView, setCurrentView] = useState<'home' | 'dashboard'>('home');
+  // Visualização ativa: 'home', 'dashboard', 'terms' ou 'privacy'
+  const [currentView, setCurrentView] = useState<AppView>(getInitialView);
 
   // Configuração de tema e acessibilidade
   const [themeConfig, setThemeConfig] = useState<ThemeConfig>(() => {
@@ -58,6 +71,15 @@ export default function App() {
 
   // Caso demo ativo
   const [selectedDemoId, setSelectedDemoId] = useState<string>('saude_vital');
+
+  // Token oficial do TikTok salvo pelo usuário
+  const [tiktokToken, setTiktokToken] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('fatooufarsa_tiktok_token') || null;
+    } catch {
+      return null;
+    }
+  });
 
   // Relatório ativo inicial
   const [activeReport, setActiveReport] = useState<InvestigationReport>(() => {
@@ -108,6 +130,38 @@ export default function App() {
       console.error(e);
     }
   }, [themeConfig]);
+
+  // Navegação entre rotas com pushState
+  const navigateTo = (view: AppView) => {
+    setCurrentView(view);
+    const targetPath = view === 'terms' ? '/terms' : view === 'privacy' ? '/privacy' : '/';
+    if (typeof window !== 'undefined') {
+      if (window.location.pathname !== targetPath && (view === 'terms' || view === 'privacy' || targetPath === '/')) {
+        window.history.pushState(null, '', targetPath);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Sincronizar rota do navegador com popstate
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname.toLowerCase();
+      if (path === '/terms' || path.startsWith('/terms/')) {
+        setCurrentView('terms');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (path === '/privacy' || path.startsWith('/privacy/')) {
+        setCurrentView('privacy');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (currentView === 'terms' || currentView === 'privacy') {
+        setCurrentView('home');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [currentView]);
 
   // Salvar no histórico
   const saveToHistory = (report: InvestigationReport) => {
@@ -184,110 +238,72 @@ export default function App() {
     // Perfil arbitrário ou vídeo com transcrição fornecido pelo usuário
     setIsLoadingAi(true);
 
-    const generatedProfile: TikTokProfile = {
-      username: clean || 'criador_tiktok',
-      fullName: clean ? clean.charAt(0).toUpperCase() + clean.slice(1) : 'Criador do TikTok',
-      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&auto=format&fit=crop&q=80',
-      isVerified: false,
-      followersCount: 68000,
-      followingCount: 140,
-      likesReceivedCount: 520000,
-      videosCount: 32,
-      biography: `Perfil em @${clean || 'criador_tiktok'}. Análise de conformidade e evidências realizada via Fato ou Farsa.`,
-      category: 'Criador de Conteúdo',
-      profileUrl: `https://www.tiktok.com/@${clean || 'criador_tiktok'}`,
-      joinedDate: '2023',
-    };
-
-    const mainCaption = manualTranscript
-      ? `Publicação sob investigação: "${manualTranscript.slice(0, 180)}..."`
-      : `Conteúdo de vídeo publicado no TikTok com potencial de ampla circulação. Verifique as fontes.`;
-
-    const generatedPosts: TikTokVideo[] = [
-      {
-        id: `video_${clean}_1`,
-        videoId: '7379201948201928374',
-        type: 'video',
-        caption: mainCaption,
-        transcript: manualTranscript || 'Transcrição não informada diretamente. Investigação focada em padrões de métricas e legenda.',
-        soundTitle: 'som original - ' + (clean || 'Criador'),
-        timestamp: new Date(Date.now() - 2 * 86400000).toISOString(),
-        formattedDate: 'Há 2 dias',
-        viewsCount: 380000,
-        likesCount: 6200,
-        commentsCount: 540,
-        sharesCount: 1900,
-        savesCount: 1200,
-        durationSeconds: 45,
-        url: `https://www.tiktok.com/@${clean || 'criador_tiktok'}`,
-        thumbnailUrl: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=400&auto=format&fit=crop&q=80',
-        isOutlier: false,
-        anomalyScore: 22,
-        suspicionFlags: manualTranscript ? ['Texto inserido manualmente submetido para validação cruzada'] : [],
-      },
-      {
-        id: `video_${clean}_2`,
-        videoId: '7372910481920192831',
-        type: 'video',
-        caption: 'Revelação inédita que todos deveriam saber antes que removam do ar! #alerta #viral',
-        transcript: 'Método revelado pela primeira vez. Não perca esta oportunidade antes que encerrem as inscrições.',
-        soundTitle: 'Dramatic Suspense - Beat Audio',
-        timestamp: new Date(Date.now() - 5 * 86400000).toISOString(),
-        formattedDate: 'Há 5 dias',
-        viewsCount: 1150000,
-        likesCount: 940, // Discrepância
-        commentsCount: 1200,
-        sharesCount: 3400,
-        savesCount: 890,
-        durationSeconds: 38,
-        url: `https://www.tiktok.com/@${clean || 'criador_tiktok'}`,
-        thumbnailUrl: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&auto=format&fit=crop&q=80',
-        isOutlier: true,
-        anomalyScore: 68,
-        suspicionFlags: ['Discrepância acentuada entre reproduções (1,1M) e taxa de curtidas (0,08%)'],
-      },
-      {
-        id: `video_${clean}_3`,
-        videoId: '7369182736451928372',
-        type: 'video',
-        caption: 'Rotina e bastidores do processo diário. #vlog #diaadia',
-        transcript: 'Acompanhe comigo um pouco do fluxo de trabalho e dicas práticas.',
-        soundTitle: 'Acoustic Chill Vibes',
-        timestamp: new Date(Date.now() - 11 * 86400000).toISOString(),
-        formattedDate: 'Há 11 dias',
-        viewsCount: 210000,
-        likesCount: 16500,
-        commentsCount: 380,
-        sharesCount: 720,
-        savesCount: 1400,
-        durationSeconds: 32,
-        url: `https://www.tiktok.com/@${clean || 'criador_tiktok'}`,
-        thumbnailUrl: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400&auto=format&fit=crop&q=80',
-        isOutlier: false,
-        anomalyScore: 8,
-        suspicionFlags: [],
-      },
-    ];
-
-    const stats = calculateStatisticalSummary(generatedPosts);
-
     try {
-      const aiResult = await requestAiAnalysis(generatedProfile, generatedPosts, stats);
+      // 1. Consulta dados na TikTok Display API v2 oficial (ou fallback transparente)
+      const tiktokData = await fetchTikTokProfileData(
+        input,
+        manualTranscript,
+        tiktokToken || undefined
+      );
+
+      const targetProfile: TikTokProfile = {
+        username: tiktokData.profile.username,
+        fullName: tiktokData.profile.fullName,
+        avatarUrl: tiktokData.profile.avatarUrl,
+        isVerified: tiktokData.profile.isVerified,
+        followersCount: tiktokData.profile.followersCount,
+        followingCount: tiktokData.profile.followingCount,
+        likesReceivedCount: tiktokData.profile.likesReceivedCount,
+        videosCount: tiktokData.profile.videosCount,
+        biography: tiktokData.profile.biography,
+        category: tiktokData.profile.category,
+        profileUrl: tiktokData.profile.profileUrl,
+        joinedDate: tiktokData.profile.joinedDate,
+      };
+
+      const targetPosts: TikTokVideo[] = tiktokData.posts.map((p) => ({
+        id: p.id,
+        videoId: p.videoId,
+        type: p.type,
+        caption: p.caption,
+        transcript: p.transcript,
+        soundTitle: p.soundTitle,
+        timestamp: p.timestamp,
+        formattedDate: p.formattedDate,
+        viewsCount: p.viewsCount,
+        likesCount: p.likesCount,
+        commentsCount: p.commentsCount,
+        sharesCount: p.sharesCount,
+        savesCount: p.savesCount,
+        durationSeconds: p.durationSeconds,
+        url: p.url,
+        thumbnailUrl: p.thumbnailUrl,
+        isOutlier: p.isOutlier,
+        anomalyScore: p.anomalyScore,
+        suspicionFlags: p.suspicionFlags,
+      }));
+
+      const stats = calculateStatisticalSummary(targetPosts);
+
+      // 2. Executa a análise pericial com IA (Gemini ou Base Forense Nacional)
+      const aiResult = await requestAiAnalysis(targetProfile, targetPosts, stats);
+
       const newReport: InvestigationReport = {
-        id: `report_${clean}_${Date.now()}`,
+        id: `report_${targetProfile.username}_${Date.now()}`,
         createdAt: new Date().toLocaleString('pt-BR'),
-        profile: generatedProfile,
-        posts: generatedPosts,
+        profile: targetProfile,
+        posts: targetPosts,
         statistics: stats,
         aiAnalysis: aiResult,
-        isDemo: true,
-        dataSource: manualTranscript ? 'manual_input' : 'sandbox_dataset',
+        isDemo: !tiktokData.isLiveApi,
+        dataSource: tiktokData.source,
         submittedTranscript: manualTranscript,
       };
+
       setActiveReport(newReport);
       saveToHistory(newReport);
     } catch (err) {
-      console.error(err);
+      console.error('Falha ao processar análise do TikTok:', err);
     } finally {
       setIsLoadingAi(false);
       setCurrentView('dashboard');
@@ -323,10 +339,7 @@ export default function App() {
       {/* Barra de Navegação Compacta e Funcional Conforme Seção 4 */}
       <AppNavbar
         currentView={currentView}
-        onNavigateHome={() => {
-          setCurrentView('home');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onNavigateHome={() => navigateTo('home')}
         onOpenNewAnalysis={() => setIsNewAnalysisOpen(true)}
         onOpenDirectFactCheck={() => setIsDirectFactCheckOpen(true)}
         onOpenApiModal={() => setIsApiModalOpen(true)}
@@ -344,20 +357,23 @@ export default function App() {
 
       {/* Conteúdo Principal */}
       <main className="flex-1 flex flex-col">
-        {currentView === 'home' ? (
+        {currentView === 'terms' ? (
+          <TermsPage onNavigateHome={() => navigateTo('home')} />
+        ) : currentView === 'privacy' ? (
+          <PrivacyPage onNavigateHome={() => navigateTo('home')} />
+        ) : currentView === 'home' ? (
           <HomeSimpleView
             onStartAnalysis={handlePerformAnalysis}
             onSelectDemo={handleSelectDemoScenario}
             isLoading={isLoadingAi}
             onOpenDirectFactCheck={() => setIsDirectFactCheckOpen(true)}
+            onOpenApiModal={() => setIsApiModalOpen(true)}
+            isTikTokConnected={Boolean(tiktokToken)}
           />
         ) : (
           <DashboardView
             report={activeReport}
-            onBackToHome={() => {
-              setCurrentView('home');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onBackToHome={() => navigateTo('home')}
             onSelectDemoScenario={handleSelectDemoScenario}
             onPerformNewAnalysis={handlePerformAnalysis}
             onRefreshAi={handleRefreshAi}
@@ -381,11 +397,47 @@ export default function App() {
         )}
       </main>
 
-      {/* Rodapé Conciso da Aplicação */}
-      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-4 px-4 sm:px-6 text-center text-xs text-slate-500 dark:text-slate-400">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Fato ou Farsa — Plataforma de Verificação de Conteúdos do TikTok</span>
-          <span className="text-[11px]">Em conformidade com a LGPD (Lei 13.709/2018) e termos oficiais do TikTok</span>
+      {/* Rodapé da Aplicação com Links Legais */}
+      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-5 px-4 sm:px-6 text-xs text-slate-500 dark:text-slate-400">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
+              Fato ou Farsa — Plataforma de Verificação de Conteúdos do TikTok
+            </span>
+            <span className="hidden sm:inline text-slate-300 dark:text-slate-700">•</span>
+            <span className="text-[11px]">Em conformidade com a LGPD (Lei 13.709/2018) e termos oficiais do TikTok</span>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-medium">
+            <a
+              href="/terms"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('terms');
+              }}
+              className="text-slate-600 dark:text-slate-400 hover:text-[#003876] dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer"
+            >
+              Termos de Uso
+            </a>
+            <span className="text-slate-300 dark:text-slate-700">•</span>
+            <a
+              href="/privacy"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('privacy');
+              }}
+              className="text-slate-600 dark:text-slate-400 hover:text-[#003876] dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer"
+            >
+              Política de Privacidade
+            </a>
+            <span className="text-slate-300 dark:text-slate-700">•</span>
+            <button
+              onClick={() => setIsApiModalOpen(true)}
+              className="text-slate-600 dark:text-slate-400 hover:text-[#003876] dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer"
+            >
+              Status das APIs
+            </button>
+          </div>
         </div>
       </footer>
 
@@ -441,6 +493,7 @@ export default function App() {
       <ApiIntegrationsModal
         isOpen={isApiModalOpen}
         onClose={() => setIsApiModalOpen(false)}
+        onTokenChange={setTiktokToken}
       />
     </div>
   );

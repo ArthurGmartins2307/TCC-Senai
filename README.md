@@ -76,8 +76,21 @@ O protótipo contempla a organização dos elementos da interface, a hierarquia 
 
 ---
 
+## 🐍 Backend Django (TCC & Pesquisa Acadêmica)
+
+A plataforma conta com arquitetura completa de backend em **Python 3 + Django 5 + Django REST Framework (DRF)** com persistência relacional no **SQLite**:
+
+- **Modelos Relacionais:** `TikTokProfile`, `TikTokVideo`, `InvestigationReport`, `ClaimVerification` e `EvidenceSource`.
+- **Painel Administrativo:** Django Admin com visualização relacional e inline em `/admin/`.
+- **Camada de Serviços:** Desacoplamento para `tiktok_service.py`, `statistics_service.py`, `fact_check_service.py` e `ai_analysis_service.py`.
+- **Testes Unitários:** 14 testes cobrindo cálculos estatísticos, normalização e endpoints (`python manage.py test verification`).
+- 📖 **[Consulte a Documentação Completa do Django MVP](DJANGO_MVP_DOCUMENTATION.md)** para especificações de endpoints, esquemas de dados e comandos.
+
+---
+
 ## 🛠️ Tecnologias
 
+- **Backend Principal:** Python 3.11, Django 5, Django REST Framework, SQLite (Django ORM).
 - **Frontend:** React 19, TypeScript, Tailwind CSS, Lucide Icons.
-- **Backend & IA:** Node.js, Express / Vite middleware, `@google/genai` (Gemini 3.8 Flash com Google Search Grounding).
-- **Testes Unitários:** Runner nativo `node:test` (`npm test`).
+- **Gateway & IA:** Node.js, Express / Vite middleware com failover automático, `@google/genai` (Gemini Flash com Grounding).
+- **Testes Automatizados:** Testes Django (`python manage.py test verification`) e Node.js (`npm test`).
