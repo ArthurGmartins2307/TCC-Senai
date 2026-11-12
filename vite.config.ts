@@ -57,7 +57,7 @@ function pythonBackendPlugin(): Plugin {
 
       checkAndStartPython();
 
-      // Middleware de verificação estática do TikTok for Developers
+      // Middleware de verificação estática do TikTok for Developers (Terms e Privacy)
       server.middlewares.use((req, res, next) => {
         if (req.url && (req.url.includes('tiktoklvFvYxrZ5bGEB7EajcbCN2zJ4L4a82D7') || req.url.endsWith('tiktoklvFvYxrZ5bGEB7EajcbCN2zJ4L4a82D7.txt'))) {
           res.writeHead(200, {
@@ -67,6 +67,16 @@ function pythonBackendPlugin(): Plugin {
           res.end('tiktok-developers-site-verification=lvFvYxrZ5bGEB7EajcbCN2zJ4L4a82D7');
           return;
         }
+
+        if (req.url && (req.url.includes('tiktokZfEi1aZfdFYmDRv9B6lTL27s84k5onH4') || req.url.endsWith('tiktokZfEi1aZfdFYmDRv9B6lTL27s84k5onH4.txt'))) {
+          res.writeHead(200, {
+            'Content-Type': 'text/plain; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600',
+          });
+          res.end('tiktok-developers-site-verification=ZfEi1aZfdFYmDRv9B6lTL27s84k5onH4');
+          return;
+        }
+
         next();
       });
 
