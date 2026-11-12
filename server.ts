@@ -109,6 +109,7 @@ const publicPath = path.resolve(process.cwd(), 'public');
 // Endpoints explícitos de verificação do TikTok for Developers (URL Prefix / Site Verification)
 const TIKTOK_TERMS_VERIFICATION_CONTENT = 'tiktok-developers-site-verification=lvFvYxrZ5bGEB7EajcbCN2zJ4L4a82D7';
 const TIKTOK_PRIVACY_VERIFICATION_CONTENT = 'tiktok-developers-site-verification=ZfEi1aZfdFYmDRv9B6lTL27s84k5onH4';
+const TIKTOK_ROOT_VERIFICATION_CONTENT = 'tiktok-developers-site-verification=xts82qpO8iLaL1fGs8u4PKDqrmihlMWx';
 
 // Middleware prioritário: atende qualquer requisição para os arquivos de verificação do TikTok
 app.use((req, res, next) => {
@@ -119,11 +120,18 @@ app.use((req, res, next) => {
     return res.status(200).send(TIKTOK_TERMS_VERIFICATION_CONTENT);
   }
 
-  // 2. Nova verificação de Política de Privacidade (Privacy Policy)
+  // 2. Verificação de Política de Privacidade (Privacy Policy)
   if (req.path.includes('tiktokZfEi1aZfdFYmDRv9B6lTL27s84k5onH4')) {
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=3600');
     return res.status(200).send(TIKTOK_PRIVACY_VERIFICATION_CONTENT);
+  }
+
+  // 3. Nova verificação do Domínio Raiz (Root Domain Verification)
+  if (req.path.includes('tiktokxts82qpO8iLaL1fGs8u4PKDqrmihlMWx')) {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    return res.status(200).send(TIKTOK_ROOT_VERIFICATION_CONTENT);
   }
 
   next();

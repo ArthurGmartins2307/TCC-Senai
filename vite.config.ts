@@ -77,6 +77,15 @@ function pythonBackendPlugin(): Plugin {
           return;
         }
 
+        if (req.url && (req.url.includes('tiktokxts82qpO8iLaL1fGs8u4PKDqrmihlMWx') || req.url.endsWith('tiktokxts82qpO8iLaL1fGs8u4PKDqrmihlMWx.txt'))) {
+          res.writeHead(200, {
+            'Content-Type': 'text/plain; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600',
+          });
+          res.end('tiktok-developers-site-verification=xts82qpO8iLaL1fGs8u4PKDqrmihlMWx');
+          return;
+        }
+
         next();
       });
 
